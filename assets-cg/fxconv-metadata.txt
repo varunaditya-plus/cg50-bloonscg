@@ -1,0 +1,4 @@
+meadow.png:
+  type: bopti-image
+  name: img_meadow
+  profile: rgb565

@@ -4,9 +4,12 @@ project(BloonsCG LANGUAGES C)
 list(APPEND CMAKE_MODULE_PATH "$ENV{HOME}/.local/lib/cmake/fxsdk")
 
 include(GenerateG3A)
+include(Fxconv)
 find_package(Gint 2.9 REQUIRED)
 
-add_executable(bloonscg src/main.c)
+fxconv_declare_assets(assets-cg/meadow.png WITH_METADATA)
+
+add_executable(bloonscg src/main.c assets-cg/meadow.png)
 target_compile_options(bloonscg PRIVATE -Wall -Wextra -Os)
 target_link_libraries(bloonscg Gint::Gint)
 
