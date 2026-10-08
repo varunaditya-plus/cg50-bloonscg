@@ -6,9 +6,11 @@ Game game;
 #endif
 extern const TowerDef dart_monkey_def;
 extern const TowerDef boomerang_monkey_def;
+extern const TowerDef bomb_shooter_def;
 const TowerDef *tower_defs[MONKEY_COUNT] = {
     [0] = &dart_monkey_def,
     [1] = &boomerang_monkey_def,
+    [2] = &bomb_shooter_def,
 };
 
 const char *const monkey_names[MONKEY_COUNT] = {
