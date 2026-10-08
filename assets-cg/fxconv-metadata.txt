@@ -7,3 +7,12 @@ monkey-portraits.png:
   type: bopti-image
   name: img_monkey_portraits
   profile: p8
+
+monkey-sprites.png:
+  type: bopti-image
+  name: img_monkey_sprites
+  profile: p8
+
+meadow-placement.bin:
+  type: binary
+  name: meadow_placement

@@ -10,6 +10,8 @@ find_package(Gint 2.9 REQUIRED)
 set(ASSETS
   assets-cg/meadow.png
   assets-cg/monkey-portraits.png
+  assets-cg/monkey-sprites.png
+  assets-cg/meadow-placement.bin
 )
 fxconv_declare_assets(${ASSETS} WITH_METADATA)
 
