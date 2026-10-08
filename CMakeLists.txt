@@ -1,0 +1,21 @@
+cmake_minimum_required(VERSION 3.15)
+project(BloonsCG LANGUAGES C)
+
+list(APPEND CMAKE_MODULE_PATH "$ENV{HOME}/.local/lib/cmake/fxsdk")
+
+include(GenerateG3A)
+find_package(Gint 2.9 REQUIRED)
+
+add_executable(bloonscg src/main.c)
+target_compile_options(bloonscg PRIVATE -Wall -Wextra -Os)
+target_link_libraries(bloonscg Gint::Gint)
+
+generate_g3a(
+  TARGET bloonscg
+  OUTPUT "${CMAKE_SOURCE_DIR}/BloonsCG.g3a"
+  NAME "Bloons CG"
+  ICONS
+    "${CMAKE_SOURCE_DIR}/assets-cg/icon-uns.png"
+    "${CMAKE_SOURCE_DIR}/assets-cg/icon-sel.png"
+)
+
