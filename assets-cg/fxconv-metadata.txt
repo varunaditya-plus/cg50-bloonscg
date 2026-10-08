@@ -16,3 +16,13 @@ monkey-sprites.png:
 meadow-placement.bin:
   type: binary
   name: meadow_placement
+
+bloons.png:
+  type: bopti-image
+  name: img_bloons
+  profile: p8
+
+upgrade-icons.png:
+  type: bopti-image
+  name: img_upgrade_icons
+  profile: p8

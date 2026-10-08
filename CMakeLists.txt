@@ -12,11 +12,29 @@ set(ASSETS
   assets-cg/monkey-portraits.png
   assets-cg/monkey-sprites.png
   assets-cg/meadow-placement.bin
+  assets-cg/bloons.png
+  assets-cg/upgrade-icons.png
 )
 fxconv_declare_assets(${ASSETS} WITH_METADATA)
 
-add_executable(bloonscg src/main.c ${ASSETS})
+add_executable(bloonscg
+  src/main.c
+  src/mechanics/core.c
+  src/mechanics/combat.c
+  src/mechanics/shots.c
+  src/mechanics/collisions.c
+  src/mechanics/lightning.c
+  src/mechanics/projectiles.c
+  src/mechanics/traps.c
+  src/mechanics/air.c
+  src/mechanics/support.c
+  src/mechanics/bloons.c
+  src/mechanics/world.c
+  src/mechanics/ui.c
+  ${ASSETS}
+)
 target_compile_options(bloonscg PRIVATE -Wall -Wextra -Os)
+target_include_directories(bloonscg PRIVATE src)
 target_link_libraries(bloonscg Gint::Gint)
 
 generate_g3a(
