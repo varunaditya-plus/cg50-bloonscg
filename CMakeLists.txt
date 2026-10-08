@@ -7,9 +7,13 @@ include(GenerateG3A)
 include(Fxconv)
 find_package(Gint 2.9 REQUIRED)
 
-fxconv_declare_assets(assets-cg/meadow.png WITH_METADATA)
+set(ASSETS
+  assets-cg/meadow.png
+  assets-cg/monkey-portraits.png
+)
+fxconv_declare_assets(${ASSETS} WITH_METADATA)
 
-add_executable(bloonscg src/main.c assets-cg/meadow.png)
+add_executable(bloonscg src/main.c ${ASSETS})
 target_compile_options(bloonscg PRIVATE -Wall -Wextra -Os)
 target_link_libraries(bloonscg Gint::Gint)
 
@@ -21,4 +25,3 @@ generate_g3a(
     "${CMAKE_SOURCE_DIR}/assets-cg/icon-uns.png"
     "${CMAKE_SOURCE_DIR}/assets-cg/icon-sel.png"
 )
-

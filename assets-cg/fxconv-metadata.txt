@@ -2,3 +2,8 @@ meadow.png:
   type: bopti-image
   name: img_meadow
   profile: rgb565
+
+monkey-portraits.png:
+  type: bopti-image
+  name: img_monkey_portraits
+  profile: p8
