@@ -4,7 +4,10 @@
 #ifndef __sh__
 Game game;
 #endif
-const TowerDef *tower_defs[MONKEY_COUNT];
+extern const TowerDef dart_monkey_def;
+const TowerDef *tower_defs[MONKEY_COUNT] = {
+    [0] = &dart_monkey_def,
+};
 
 const char *const monkey_names[MONKEY_COUNT] = {
     "Dart Monkey",     "Boomerang Monkey", "Bomb Shooter",  "Tack Shooter",   "Ice Monkey",

@@ -31,6 +31,7 @@ add_executable(bloonscg
   src/mechanics/bloons.c
   src/mechanics/world.c
   src/mechanics/ui.c
+  src/monkeys/dart_monkey.c
   ${ASSETS}
 )
 target_compile_options(bloonscg PRIVATE -Wall -Wextra -Os)
