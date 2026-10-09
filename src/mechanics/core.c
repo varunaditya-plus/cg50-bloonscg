@@ -9,9 +9,10 @@ extern const TowerDef boomerang_monkey_def;
 extern const TowerDef bomb_shooter_def;
 extern const TowerDef tack_shooter_def;
 extern const TowerDef ice_monkey_def;
+extern const TowerDef glue_gunner_def;
 const TowerDef *tower_defs[MONKEY_COUNT] = {
     [0] = &dart_monkey_def,  [1] = &boomerang_monkey_def, [2] = &bomb_shooter_def,
-    [3] = &tack_shooter_def, [4] = &ice_monkey_def,
+    [3] = &tack_shooter_def, [4] = &ice_monkey_def,       [5] = &glue_gunner_def,
 };
 
 const char *const monkey_names[MONKEY_COUNT] = {
