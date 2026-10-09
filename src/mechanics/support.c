@@ -508,7 +508,7 @@ void support_tick(unsigned owner, const TowerProfile *p)
             t->support_clock = 0;
         }
         t->support_clock = timer(t->support_clock);
-        unsigned end = rounds[game.round - 1].end;
+        unsigned end = game_round()->end;
         unsigned wanted = end ? (uint64_t)game.round_time * p->income_count / end : p->income_count;
         unsigned cap = p->income_count;
         if (wanted > cap)

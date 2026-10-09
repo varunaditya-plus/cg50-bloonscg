@@ -872,9 +872,10 @@ void bloons_tick(void)
 
 void rounds_tick(void)
 {
-    if (!game.running || !game.round || game.round > 60 || game.lost)
+    // If game is not running or there is no current round or lost, return
+    if (!game.running || !game.round || game.lost)
         return;
-    const RoundDef *r = &rounds[game.round - 1];
+    const RoundDef *r = game_round();
     for (unsigned i = 0; i < r->count; i++) {
         const RoundGroup *g = &round_groups[r->first + i];
         while (game.group_spawned[i] < g->count) {

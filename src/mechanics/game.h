@@ -322,7 +322,8 @@ typedef struct {
     uint16_t brew_damage, brew_pierce, brew_rate, brew_range;
     uint16_t support_rate, support_range, support_pierce, support_immunity;
     uint16_t pierce_remainder[ATTACK_LIMIT];
-    uint16_t placement_lives, lowest_lives, farm_round, farm_emitted;
+    uint32_t farm_round;
+    uint16_t placement_lives, lowest_lives, farm_emitted;
     uint16_t previous_lives, lives_gained;
     uint8_t support_camo, support_initialised;
 } Tower;
@@ -396,8 +397,8 @@ typedef struct {
     uint16_t shot_free_count, shot_history_free_count;
     uint32_t support_random;
     uint16_t sentry_count, cash_drop_count;
-    uint32_t time, round_time, cash;
-    uint16_t lives, tower_count, bloon_count, shot_count, round;
+    uint32_t time, round_time, cash, round;
+    uint16_t lives, tower_count, bloon_count, shot_count;
     uint16_t group_spawned[64];
     uint8_t running, won, lost, speed, pool_full;
 } Game;
@@ -427,6 +428,7 @@ uint32_t game_random(void);
 void game_init(void);
 void game_tick(void);
 void game_start_round(void);
+const RoundDef *game_round(void);
 int can_place_monkey(unsigned type, int x, int y, int ignore);
 int game_place(unsigned type, int x, int y);
 int game_upgrade(unsigned tower, unsigned path);

@@ -299,10 +299,21 @@ void game_sell(unsigned id)
     shots_owner_destroy(id);
 }
 
+const RoundDef *game_round(void)
+{
+    unsigned index = game.round ? game.round - 1 : 0;
+    if (index >= 60) {
+        // Freeplay cycles rounds 51-60 without growing the spawn buffers.
+        index = 50 + (index - 60) % 10;
+    }
+    return &rounds[index];
+}
+
 void game_start_round(void)
 {
-    if (game.running || game.won || game.lost || game.round >= 60)
+    if (game.running || game.lost)
         return;
+    game.won = 0;
     game.round++;
     game.round_time = 0;
     game.running = 1;

@@ -375,7 +375,7 @@ static void hud(void)
     snprintf(text, sizeof text, "$%lu", (unsigned long)game.cash / 100);
     label(92, 1, 91, GOLD, text, DTEXT_LEFT, 1);
 
-    snprintf(text, sizeof text, "%u/60", game.round);
+    snprintf(text, sizeof text, game.round > 60 ? "%lu" : "%lu/60", (unsigned long)game.round);
     int width;
     dsize(text, &font_game_title, &width, NULL);
     label(306 - width, 6, 34, CREAM, "ROUND", DTEXT_RIGHT, 0);
@@ -419,7 +419,8 @@ static void footer(void)
 {
     fill(0, 205, 396, 19, BROWN);
     if (ui.mode == SELECT) {
-        softkey(0, game.running ? "ROUND" : "START", game.running ? DISABLED : GREEN_UI,
+        softkey(0, game.won ? "FREEPLAY" : game.running ? "ROUND" : "START",
+                game.running ? DISABLED : GREEN_UI,
                 !game.running, 0);
         label(68, 209, 192, C_WHITE, "Arrows: select  EXE: place", DTEXT_LEFT, 0);
         softkey(4, game.speed == 1 ? "1x" : "3x", BLUE_UI, 1, 0);
@@ -443,7 +444,7 @@ static void footer(void)
         fill(66, 205, 196, 19, BROWN);
         label(164, 209, 190, game.lost ? RED_UI : GOLD,
               game.pool_full ? "Object capacity reached"
-              : game.won     ? "VICTORY! Round 60 complete"
+              : game.won     ? "VICTORY! F1: freeplay"
                              : "GAME OVER",
               DTEXT_CENTER, 0);
     }
@@ -850,6 +851,11 @@ int ui_key(int key)
 
     if (key == KEY_MENU) {
         exit_confirmation = 1;
+        return 1;
+    }
+
+    if (key == KEY_F1 && game.won) {
+        game_start_round();
         return 1;
     }
 
