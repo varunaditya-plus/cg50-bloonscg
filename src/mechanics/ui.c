@@ -1,12 +1,15 @@
 #include "game.h"
+#include "monkeys/appearance.h"
 #include <gint/display.h>
 #include <gint/keyboard.h>
 #include <stdio.h>
 
 // Portraits/icons: https://www.spriters-resource.com/pc_computer/bloonstd6/
 // Monkey models: https://models.spriters-resource.com/pc_computer/bloonstd6/
+// Dartling upgrade sprites: https://github.com/HalfHydra/BTD6-API-Explorer/tree/180d07a074b8a9c0228731ec3f404670e43c6e80/assets/InstaMonkeyIcon
 extern const bopti_image_t img_meadow, img_monkey_portraits, img_monkey_sprites;
 extern const bopti_image_t img_bloons, img_upgrade_icons, img_ui_hud;
+extern const bopti_image_t img_upgrade_portraits, img_upgrade_sprites;
 extern const font_t font_game_ui, font_game_title;
 
 enum { SELECT, PLACE, PICK, MODAL };
@@ -175,11 +178,16 @@ static int terrain_y(int y)
     return (y * 315 + 3078) / 326;
 }
 
-static void monkey(int type, int x, int y, const bopti_image_t *img)
+static const MonkeyAppearance *appearance(const Tower *tower)
+{
+    return &monkey_appearances[monkey_appearance_offsets[tower->type] + tower->profile];
+}
+
+static void monkey(int index, int x, int y, const bopti_image_t *img)
 {
     unsigned part = 0;
     while (world_clip(x - 8, y - 8, 16, 16, &part)) {
-        dsubimage(x - 8, y - 8, img, type % 2 * 16, type / 2 * 16, 16, 16, DIMAGE_NONE);
+        dsubimage(x - 8, y - 8, img, index % 2 * 16, index / 2 * 16, 16, 16, DIMAGE_NONE);
     }
     map_mark(x - 8, y - 8, 16, 16);
 }
@@ -482,7 +490,12 @@ static void modal(void)
     for (int y = 46; y < 142; y += 8) {
         fill(18, y, 56, 8, SKY - ((y - 46) / 8 << 5));
     }
-    enlarged(&img_monkey_portraits, t->type % 2 * 24, t->type / 2 * 24, 24, 22, 69);
+    int portrait = appearance(t)->portrait;
+    const bopti_image_t *image = portrait == 255 ? &img_monkey_portraits : &img_upgrade_portraits;
+    if (portrait == 255) {
+        portrait = t->type;
+    }
+    enlarged(image, portrait % 2 * 24, portrait / 2 * 24, 24, 22, 69);
 
     int visible = 0;
 
@@ -736,10 +749,15 @@ void ui_draw(void)
             continue;
         }
         seen++;
-        monkey(t->type, map_x(t->x), map_y(t->y), &img_monkey_sprites);
+        int sprite = appearance(t)->sprite;
+        const bopti_image_t *image = sprite == 255 ? &img_monkey_sprites : &img_upgrade_sprites;
+        if (sprite == 255) {
+            sprite = t->type;
+        }
+        monkey(sprite, map_x(t->x), map_y(t->y), image);
         const TowerProfile *p = tower_profile(t);
         if (p && (p->support & S_AIR)) {
-            monkey(t->type, map_x(t->air_x), map_y(t->air_y), &img_monkey_sprites);
+            monkey(sprite, map_x(t->air_x), map_y(t->air_y), image);
         }
     }
 
