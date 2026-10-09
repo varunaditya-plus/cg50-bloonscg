@@ -14,11 +14,12 @@ extern const TowerDef sniper_monkey_def;
 extern const TowerDef monkey_ace_def;
 extern const TowerDef heli_pilot_def;
 extern const TowerDef mortar_monkey_def;
+extern const TowerDef dartling_gunner_def;
 const TowerDef *tower_defs[MONKEY_COUNT] = {
     [0] = &dart_monkey_def,   [1] = &boomerang_monkey_def, [2] = &bomb_shooter_def,
     [3] = &tack_shooter_def,  [4] = &ice_monkey_def,       [5] = &glue_gunner_def,
     [6] = &sniper_monkey_def, [7] = &monkey_ace_def,       [8] = &heli_pilot_def,
-    [9] = &mortar_monkey_def,
+    [9] = &mortar_monkey_def, [10] = &dartling_gunner_def,
 };
 
 const char *const monkey_names[MONKEY_COUNT] = {

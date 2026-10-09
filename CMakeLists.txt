@@ -41,6 +41,7 @@ add_executable(bloonscg
   src/monkeys/monkey_ace.c
   src/monkeys/heli_pilot.c
   src/monkeys/mortar_monkey.c
+  src/monkeys/dartling_gunner.c
   ${ASSETS}
 )
 target_compile_options(bloonscg PRIVATE -Wall -Wextra -Os)
