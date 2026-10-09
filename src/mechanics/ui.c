@@ -304,12 +304,13 @@ static void label(int x, int y, int width, int color, const char *text, int alig
     dtext_opt(x, y, color, C_NONE, DTEXT_LEFT, DTEXT_TOP, text, end - text);
 }
 
-static void wrapped(int x, int y, int width, int color, const char *text)
+static int wrapped(int x, int y, int width, int color, const char *text, int lines)
 {
     dfont(&font_game_ui);
-    for (int line = 0; line < 2 && *text; line++) {
+    int line;
+    for (line = 0; line < lines && *text; line++) {
         const char *end = drsize(text, NULL, width, NULL);
-        if (*end) {
+        if (*end && *end != ' ') {
             const char *word = end;
             while (word > text && word[-1] != ' ') {
                 word--;
@@ -328,6 +329,7 @@ static void wrapped(int x, int y, int width, int color, const char *text)
             text++;
         }
     }
+    return line;
 }
 
 static int modal_row_visible(const Tower *t, int row)
@@ -468,17 +470,16 @@ static void footer(void)
     }
 }
 
-static void portrait(int type, int px, int py)
+static void enlarged(const bopti_image_t *image, int sx, int sy, int size, int px, int py)
 {
-    const int8_t *pixels = img_monkey_portraits.data;
-    for (int y = 0; y < 24; y++) {
-        for (int x = 0; x < 24; x++) {
-            int index =
-                pixels[(type / 2 * 24 + y) * img_monkey_portraits.stride + type % 2 * 24 + x];
+    const int8_t *pixels = image->data;
+    for (int y = 0; y < size; y++) {
+        for (int x = 0; x < size; x++) {
+            int index = pixels[(sy + y) * image->stride + sx + x];
             if (index == -128) {
                 continue;
             }
-            uint16_t color = img_monkey_portraits.palette[index + 128];
+            uint16_t color = image->palette[index + 128];
             uint16_t *p = gint_vram + (py + y * 2) * DWIDTH + px + x * 2;
             p[0] = p[1] = p[DWIDTH] = p[DWIDTH + 1] = color;
         }
@@ -512,7 +513,7 @@ static void modal(void)
     for (int y = 46; y < 142; y += 8) {
         fill(18, y, 56, 8, SKY - ((y - 46) / 8 << 5));
     }
-    portrait(t->type, 22, 69);
+    enlarged(&img_monkey_portraits, t->type % 2 * 24, t->type / 2 * 24, 24, 22, 69);
 
     int visible = 0;
 
@@ -548,25 +549,26 @@ static void modal(void)
         }
 
         if (owned) {
-            wrapped(105, y + 8, 59, CREAM, owned->name);
+            int lines = wrapped(105, y + 8, 59, CREAM, owned->name, 3);
             dsubimage(86, y + 21, &img_upgrade_icons, owned->icon % 14 * 16, owned->icon / 14 * 16,
                       16, 16, DIMAGE_NONE);
-            label(105, y + 29, 59, LIME, "OWNED", DTEXT_LEFT, 0);
+            if (lines < 3) {
+                label(105, y + 29, 59, LIME, "OWNED", DTEXT_LEFT, 0);
+            }
         } else {
-            wrapped(90, y + 14, 70, CREAM, "Not upgraded");
+            wrapped(90, y + 14, 70, CREAM, "Not upgraded", 2);
         }
 
         if (next) {
-            wrapped(177, y + 3, 124, C_WHITE, next->name);
-            dsubimage(178, y + 23, &img_upgrade_icons, next->icon % 14 * 16, next->icon / 14 * 16,
-                      16, 16, DIMAGE_NONE);
+            enlarged(&img_upgrade_icons, next->icon % 14 * 16, next->icon / 14 * 16, 16, 175,
+                     y + 5);
+            wrapped(211, y + 4, 91, C_WHITE, next->name, 2);
             if (allowed) {
                 snprintf(text, sizeof text, "$%u", next->price);
             } else {
                 snprintf(text, sizeof text, "LOCKED");
             }
-            label(201, y + 22, 99, allowed && !affordable ? RED_UI : C_WHITE, text, DTEXT_LEFT,
-                  allowed);
+            label(211, y + 28, 91, allowed && !affordable ? RED_UI : C_WHITE, text, DTEXT_LEFT, 0);
         } else {
             label(238, y + 15, 128, C_WHITE, "MAX UPGRADES", DTEXT_CENTER, 0);
         }
