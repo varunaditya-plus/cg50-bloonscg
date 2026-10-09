@@ -14,6 +14,9 @@ set(ASSETS
   assets-cg/meadow-placement.bin
   assets-cg/bloons.png
   assets-cg/upgrade-icons.png
+  assets-cg/ui-hud.png
+  assets-cg/game-ui.png
+  assets-cg/game-title.png
 )
 fxconv_declare_assets(${ASSETS} WITH_METADATA)
 

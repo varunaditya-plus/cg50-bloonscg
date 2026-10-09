@@ -5,9 +5,9 @@
 
 // Portraits/icons: https://www.spriters-resource.com/pc_computer/bloonstd6/
 // Monkey models: https://models.spriters-resource.com/pc_computer/bloonstd6/
-
 extern const bopti_image_t img_meadow, img_monkey_portraits, img_monkey_sprites;
-extern const bopti_image_t img_bloons, img_upgrade_icons;
+extern const bopti_image_t img_bloons, img_upgrade_icons, img_ui_hud;
+extern const font_t font_game_ui, font_game_title;
 
 enum { SELECT, PLACE, PICK, MODAL };
 enum { COLLECT = 3, SELL };
@@ -25,6 +25,26 @@ typedef struct {
 UI ui;
 static uint16_t red_palette[256];
 static bopti_image_t red_sprites;
+
+#define UI_RGB(hex) (((hex >> 19) & 31) << 11 | ((hex >> 10) & 63) << 5 | ((hex >> 3) & 31))
+enum {
+    WOOD = UI_RGB(0xb38d57),
+    TAN = UI_RGB(0xcfab73),
+    CREAM = UI_RGB(0xfff1c7),
+    BROWN = UI_RGB(0x613917),
+    BLUE_UI = UI_RGB(0x168eb8),
+    SKY = UI_RGB(0x6bd8f4),
+    BLUE_EDGE = UI_RGB(0x075375),
+    GREEN_UI = UI_RGB(0x48b90a),
+    LIME = UI_RGB(0x62df12),
+    GREEN_EDGE = UI_RGB(0x245d06),
+    ORANGE = UI_RGB(0xef7909),
+    ORANGE_EDGE = UI_RGB(0xa64209),
+    GOLD = UI_RGB(0xffdb57),
+    DISABLED = UI_RGB(0x899baa),
+    DISABLED_EDGE = UI_RGB(0x435360),
+    RED_UI = UI_RGB(0xc52f22)
+};
 
 void ui_init(void)
 {
@@ -55,6 +75,114 @@ static int next_tower(int from, int step)
     return -1;
 }
 
+// Paired stores keep full-screen drawing responsive; callers stay inside VRAM.
+static void fill(int x, int y, int width, int height, int color)
+{
+    if (width <= 0 || height <= 0) {
+        return;
+    }
+
+    uint32_t pair = (uint16_t)color;
+    pair |= pair << 16;
+    int right = x + width - 1;
+    int left = x + (x & 1);
+    int pairs = (((right + 1) & ~1) - left) / 2;
+
+    for (int row = y; row < y + height; row++) {
+        uint16_t *line = gint_vram + row * DWIDTH;
+        line[x] = color;
+        line[right] = color;
+        uint32_t *p = (uint32_t *)(line + left);
+        int count = pairs;
+        while (count >= 8) {
+            p[0] = pair;
+            p[1] = pair;
+            p[2] = pair;
+            p[3] = pair;
+            p[4] = pair;
+            p[5] = pair;
+            p[6] = pair;
+            p[7] = pair;
+            p += 8;
+            count -= 8;
+        }
+        while (count--) {
+            *p++ = pair;
+        }
+    }
+}
+
+static void rounded(int x, int y, int width, int height, int color)
+{
+    fill(x + 2, y, width - 4, 1, color);
+    fill(x + 1, y + 1, width - 2, 1, color);
+    fill(x, y + 2, width, height - 4, color);
+    fill(x + 1, y + height - 2, width - 2, 1, color);
+    fill(x + 2, y + height - 1, width - 4, 1, color);
+}
+
+static void box(int x, int y, int width, int height, int color, int edge, int border)
+{
+    rounded(x, y, width, height, edge);
+    rounded(x + border, y + border, width - 2 * border, height - 2 * border, color);
+}
+
+static void label(int x, int y, int width, int color, const char *text, int align, int title)
+{
+    const font_t *font = title ? &font_game_title : &font_game_ui;
+    int rendered;
+
+    // Large totals use the body font to fit the available counter width.
+    if (title) {
+        dsize(text, font, &rendered, NULL);
+        if (rendered > width) {
+            font = &font_game_ui;
+        }
+    }
+
+    dfont(font);
+    const char *end = drsize(text, font, width, &rendered);
+
+    if (align == DTEXT_CENTER) {
+        x -= rendered >> 1;
+    }
+
+    if (align == DTEXT_RIGHT) {
+        x -= rendered - 1;
+    }
+
+    if (color == C_WHITE || color == CREAM || color == GOLD) {
+        dtext_opt(x, y + 1, BROWN, C_NONE, DTEXT_LEFT, DTEXT_TOP, text, end - text);
+    }
+    dtext_opt(x, y, color, C_NONE, DTEXT_LEFT, DTEXT_TOP, text, end - text);
+}
+
+static void wrapped(int x, int y, int width, int color, const char *text)
+{
+    dfont(&font_game_ui);
+    for (int line = 0; line < 2 && *text; line++) {
+        const char *end = drsize(text, NULL, width, NULL);
+        if (*end) {
+            const char *word = end;
+            while (word > text && word[-1] != ' ') {
+                word--;
+            }
+            if (word > text) {
+                end = word - 1;
+            }
+        }
+
+        if (color == C_WHITE || color == CREAM || color == GOLD) {
+            dtext_opt(x, y + line * 10 + 1, BROWN, C_NONE, DTEXT_LEFT, DTEXT_TOP, text, end - text);
+        }
+        dtext_opt(x, y + line * 10, color, C_NONE, DTEXT_LEFT, DTEXT_TOP, text, end - text);
+        text = end;
+        while (*text == ' ') {
+            text++;
+        }
+    }
+}
+
 static int modal_row_visible(const Tower *t, int row)
 {
     if (row < 3) {
@@ -77,6 +205,147 @@ static int modal_next_row(const Tower *t, int row, int step)
     return row;
 }
 
+static const char *modal_confirm(const Tower *t)
+{
+    if (ui.row < 3) {
+        const Upgrade *next = tower_next_upgrade(t, ui.row);
+        if (!next) {
+            return "MAX";
+        }
+        if (!game_upgrade_allowed(ui.tower, ui.row)) {
+            return "LOCKED";
+        }
+        return game.cash >= next->price * 100u ? "BUY" : "NEED $";
+    }
+    return ui.row == SELL ? "SELL" : "COLLECT";
+}
+
+static void hud(void)
+{
+    char text[32];
+    dsubimage(8, 4, &img_ui_hud, 0, 0, 17, 14, DIMAGE_NONE);
+    snprintf(text, sizeof text, "%u", game.lives);
+    label(29, 1, 32, C_WHITE, text, DTEXT_LEFT, 1);
+
+    dsubimage(72, 4, &img_ui_hud, 17, 0, 16, 14, DIMAGE_NONE);
+    snprintf(text, sizeof text, "$%lu", (unsigned long)game.cash / 100);
+    label(92, 1, 91, GOLD, text, DTEXT_LEFT, 1);
+
+    label(199, 6, 34, CREAM, "ROUND", DTEXT_LEFT, 0);
+    snprintf(text, sizeof text, "%u/60", game.round);
+    label(312, 1, 75, C_WHITE, text, DTEXT_RIGHT, 1);
+}
+
+static void selector(void)
+{
+    char text[16];
+    fill(326, 0, 70, 205, WOOD);
+
+    for (int row = 0; row < 6; row++) {
+        for (int col = 0; col < 2; col++) {
+            int n = (ui.first_row + row) * 2 + col;
+            int x = 334 + col * 32;
+            int y = 1 + row * 34;
+            dsubimage(x, y, &img_monkey_portraits, col * 24, (ui.first_row + row) * 24, 24, 24,
+                      DIMAGE_NONE);
+            unsigned price = tower_defs[n]->price;
+            snprintf(text, sizeof text, "%u", price);
+            label(x + 12, y + 25, 30, game.cash >= price * 100u ? CREAM : RED_UI, text,
+                  DTEXT_CENTER, 0);
+            if (n == ui.selected) {
+                drect_border(x - 1, y - 1, x + 24, y + 24, C_NONE, 1, C_WHITE);
+            }
+        }
+    }
+
+    fill(394, 4, 2, 194, BROWN);
+    fill(394, 4 + ui.first_row * 19, 2, 116, GOLD);
+}
+
+static void softkey(int slot, const char *text, int fill_color, int enabled, int focused)
+{
+    int x = slot * 66 + 2;
+    box(x, 205, 62, 18, fill_color, focused ? C_WHITE : BROWN, 1);
+    label(x + 31, 209, 58, enabled ? C_WHITE : CREAM, text, DTEXT_CENTER, 0);
+}
+
+static void footer(void)
+{
+    fill(0, 205, 396, 19, BROWN);
+    if (ui.mode == SELECT) {
+        softkey(0, game.running ? "ROUND" : "START", game.running ? DISABLED : GREEN_UI,
+                !game.running, 0);
+        label(68, 209, 192, C_WHITE, "Arrows: select  EXE: place", DTEXT_LEFT, 0);
+        softkey(4, game.speed == 1 ? "1x" : "3x", BLUE_UI, 1, 0);
+        softkey(5, "UPGRADES", BLUE_UI, game.tower_count != 0, 0);
+    } else if (ui.mode == MODAL) {
+        const Tower *t = &game.towers[ui.tower];
+        char text[12];
+
+        for (int path = 0; path < 3; path++) {
+            if (modal_row_visible(t, path)) {
+                snprintf(text, sizeof text, "PATH %d", path + 1);
+                softkey(path, text, BLUE_UI, 1, ui.row == path);
+            }
+        }
+
+        if (modal_row_visible(t, COLLECT)) {
+            softkey(4, "COLLECT", BLUE_UI, 1, ui.row == COLLECT);
+        }
+
+        const char *confirm = modal_confirm(t);
+        const Upgrade *next = ui.row < 3 ? tower_next_upgrade(t, ui.row) : NULL;
+        int ready = ui.row >= 3 || (next && game_upgrade_allowed(ui.tower, ui.row) &&
+                                    game.cash >= next->price * 100u);
+        softkey(5, confirm, ui.row == SELL ? ORANGE : ready ? GREEN_UI : DISABLED, ready, 0);
+    } else if (ui.mode == PLACE) {
+        int valid = can_place_monkey(ui.selected, ui.x, ui.y, -1);
+        const char *status = valid ? "READY" : "BLOCKED";
+        if (game.cash < tower_defs[ui.selected]->price * 100u) {
+            status = "NO CASH";
+            valid = 0;
+        }
+        label(8, 209, 60, valid ? GOLD : RED_UI, status, DTEXT_LEFT, 0);
+        label(72, 209, 316, C_WHITE, "Arrows: move  EXE: place  EXIT: cancel", DTEXT_LEFT, 0);
+    } else {
+        label(8, 209, 380, C_WHITE, "Arrows: monkey  EXE: upgrades  EXIT: back", DTEXT_LEFT, 0);
+    }
+
+    if (game.won || game.lost || game.pool_full) {
+        fill(66, 205, 196, 19, BROWN);
+        label(164, 209, 190, game.lost ? RED_UI : GOLD,
+              game.pool_full ? "Object capacity reached"
+              : game.won     ? "VICTORY! Round 60 complete"
+                             : "GAME OVER",
+              DTEXT_CENTER, 0);
+    }
+}
+
+static void portrait(int type, int px, int py)
+{
+    const int8_t *pixels = img_monkey_portraits.data;
+    for (int y = 0; y < 24; y++) {
+        for (int x = 0; x < 24; x++) {
+            int index =
+                pixels[(type / 2 * 24 + y) * img_monkey_portraits.stride + type % 2 * 24 + x];
+            if (index == -128) {
+                continue;
+            }
+            uint16_t color = img_monkey_portraits.palette[index + 128];
+            uint16_t *p = gint_vram + (py + y * 2) * DWIDTH + px + x * 2;
+            p[0] = p[1] = p[DWIDTH] = p[DWIDTH + 1] = color;
+        }
+    }
+}
+
+static void modal_action(int x, int width, int row, const char *name, const char *value,
+                         int fill_color, int edge)
+{
+    box(x, 175, width, 25, fill_color, ui.row == row ? C_WHITE : edge, ui.row == row ? 2 : 1);
+    label(x + width / 2, 179, width - 8, C_WHITE, name, DTEXT_CENTER, 0);
+    label(x + width / 2, 190, width - 8, C_WHITE, value, DTEXT_CENTER, 0);
+}
+
 static void modal(void)
 {
     Tower *t = &game.towers[ui.tower];
@@ -84,50 +353,75 @@ static void modal(void)
     const TowerDef *definition = tower_defs[t->type];
     char text[80];
 
-    drect_border(21, 20, 314, 204, 0x2104, 1, C_WHITE);
-    dtext(29, 26, C_WHITE, definition->name);
-    if (p) {
-        snprintf(text, sizeof text, "%d-%d-%d  $%lu", p->tiers[0], p->tiers[1], p->tiers[2],
-                 (unsigned long)game.cash / 100);
-    } else {
-        snprintf(text, sizeof text, "$%lu", (unsigned long)game.cash / 100);
+    box(12, 22, 372, 180, TAN, BROWN, 2);
+    label(22, 27, 270, C_WHITE, definition->name, DTEXT_LEFT, 1);
+    snprintf(text, sizeof text, "Pops %lu", (unsigned long)t->pops);
+    label(357, 27, 92, C_WHITE, text, DTEXT_RIGHT, 0);
+    dline(369, 27, 376, 34, BROWN);
+    dline(376, 27, 369, 34, BROWN);
+
+    box(22, 44, 85, 100, SKY, BLUE_EDGE, 1);
+
+    for (int y = 46; y < 142; y += 8) {
+        fill(24, y, 81, 8, SKY - ((y - 46) / 8 << 5));
     }
-    dtext(29, 40, C_WHITE, text);
+    portrait(t->type, 40, 69);
 
     int visible = 0;
-    for (int row = 0; row <= SELL; row++) {
-        if (!modal_row_visible(t, row)) {
+
+    for (int path = 0; path < 3; path++) {
+        if (!modal_row_visible(t, path)) {
             continue;
         }
-        int y = 58 + visible++ * 19;
-        int color = C_WHITE;
-        if (row == ui.row) {
-            drect(25, y - 2, 309, y + 15, 0x52aa);
+        int y = 44 + visible++ * 43;
+        int tier = p ? p->tiers[path] : 0;
+        const Upgrade *next = tower_next_upgrade(t, path);
+        const Upgrade *owned = tier ? &definition->upgrades[path][tier - 1] : NULL;
+        int allowed = game_upgrade_allowed(ui.tower, path);
+        int affordable = next && game.cash >= next->price * 100u;
+        int purchasable = next && allowed && affordable;
+
+        box(116, y, 113, 41, WOOD, BROWN, 1);
+        box(230, y, 145, 41, purchasable ? GREEN_UI : DISABLED,
+            ui.row == path ? C_WHITE
+            : purchasable  ? GREEN_EDGE
+                           : DISABLED_EDGE,
+            ui.row == path ? 2 : 1);
+        for (int level = 0; level < definition->caps[path]; level++) {
+            drect_border(120, y + 3 + level * 8, 125, y + 8 + level * 8, level < tier ? LIME : TAN,
+                         1, BROWN);
         }
 
-        if (row < 3) {
-            const Upgrade *next = tower_next_upgrade(t, row);
-            if (next) {
-                dsubimage(29, y, &img_upgrade_icons, next->icon % 14 * 16, next->icon / 14 * 16, 16,
-                          16, DIMAGE_NONE);
-                snprintf(text, sizeof text, "%s $%u", next->name, next->price);
-                if (!game_upgrade_allowed(ui.tower, row) || game.cash < next->price * 100u) {
-                    color = 0x9cf3;
-                }
+        wrapped(131, y + 3, 93, CREAM, owned ? owned->name : "Not upgraded");
+        if (owned) {
+            dsubimage(132, y + 23, &img_upgrade_icons, owned->icon % 14 * 16, owned->icon / 14 * 16,
+                      16, 16, DIMAGE_NONE);
+            label(154, y + 28, 69, LIME, "OWNED", DTEXT_LEFT, 0);
+        }
+
+        if (next) {
+            wrapped(237, y + 3, 131, C_WHITE, next->name);
+            dsubimage(238, y + 23, &img_upgrade_icons, next->icon % 14 * 16, next->icon / 14 * 16,
+                      16, 16, DIMAGE_NONE);
+            if (allowed) {
+                snprintf(text, sizeof text, "$%u", next->price);
             } else {
-                snprintf(text, sizeof text, "%s: Complete",
-                         row == 0   ? "Top"
-                         : row == 1 ? "Middle"
-                                    : "Bottom");
+                snprintf(text, sizeof text, "LOCKED");
             }
-            dtext(49, y + 3, color, text);
-        } else if (row == COLLECT) {
-            dtext(30, y + 3, C_WHITE, t->type == 16 ? "Collect bananas" : "Collect filled traps");
+            label(261, y + 22, 107, allowed && !affordable ? RED_UI : C_WHITE, text, DTEXT_LEFT,
+                  allowed);
         } else {
-            snprintf(text, sizeof text, "Sell: $%lu", (unsigned long)(t->spent * 7 / 10 / 100));
-            dtext(30, y + 3, C_WHITE, text);
+            label(302, y + 15, 135, C_WHITE, "MAX UPGRADES", DTEXT_CENTER, 0);
         }
     }
+
+    if (modal_row_visible(t, COLLECT)) {
+        modal_action(22, 105, COLLECT, "Collect", t->type == 16 ? "Bananas" : "Traps", BLUE_UI,
+                     BLUE_EDGE);
+    }
+
+    snprintf(text, sizeof text, "$%lu", (unsigned long)(t->spent * 7 / 10 / 100));
+    modal_action(254, 121, SELL, "SELL", text, ORANGE, ORANGE_EDGE);
 }
 
 void ui_draw(void)
@@ -136,6 +430,7 @@ void ui_draw(void)
     dimage(6, 4, &img_meadow);
 
     unsigned seen = 0;
+
     for (int i = 0; i < CASH_DROP_LIMIT && seen < game.cash_drop_count; i++) {
         CashDrop *drop = &game.cash_drops[i];
         if (!drop->active) {
@@ -148,6 +443,7 @@ void ui_draw(void)
     }
 
     seen = 0;
+
     for (int i = 0; i < SENTRY_LIMIT && seen < game.sentry_count; i++) {
         Sentry *s = &game.sentries[i];
         if (!s->active) {
@@ -163,6 +459,7 @@ void ui_draw(void)
     }
 
     seen = 0;
+
     for (int i = 0; i < BLOON_LIMIT && seen < game.bloon_count; i++) {
         Bloon *b = &game.bloons[i];
         if (!b->active) {
@@ -205,6 +502,7 @@ void ui_draw(void)
     }
 
     seen = 0;
+
     for (int i = 0; i < TOWER_LIMIT && seen < game.tower_count; i++) {
         Tower *t = &game.towers[i];
         if (!t->active) {
@@ -232,44 +530,13 @@ void ui_draw(void)
         drect_border(x - 9, y - 9, x + 8, y + 8, C_NONE, 1, C_WHITE);
     }
 
-    for (int row = 0; row < 6; row++) {
-        for (int col = 0; col < 2; col++) {
-            dsubimage(330 + col * 29, 30 + row * 31, &img_monkey_portraits, col * 24,
-                      (ui.first_row + row) * 24, 24, 24, DIMAGE_NONE);
-        }
-    }
-    int focus_x = 330 + ui.selected % 2 * 29;
-    int focus_y = 30 + (ui.selected / 2 - ui.first_row) * 31;
-    drect_border(focus_x - 1, focus_y - 1, focus_x + 24, focus_y + 24, C_NONE, 1, C_WHITE);
+    selector();
+    hud();
 
-    char text[80];
-    drect(6, 4, 319, 17, 0x2104);
-    snprintf(text, sizeof text, "Lives %u  $%lu  Round %u/60", game.lives,
-             (unsigned long)game.cash / 100, game.round);
-    dtext(9, 6, C_WHITE, text);
-    drect(6, 206, 319, 219, 0x2104);
-    snprintf(text, sizeof text, "F1:Start  F5:%ux  F6:Upgrade", game.speed);
-    if (ui.mode == PLACE) {
-        const TowerDef *definition = tower_defs[ui.selected];
-        snprintf(text, sizeof text, "%s $%u  EXE:Place", definition->name, definition->price);
-    } else if (ui.mode == PICK) {
-        snprintf(text, sizeof text, "Arrows:Monkey EXE:Open EXIT:Back");
-    } else if (ui.mode == MODAL) {
-        snprintf(text, sizeof text, "Arrows:Option EXE:Confirm EXIT:Back");
-    }
-    if (game.won) {
-        snprintf(text, sizeof text, "Round 60 complete!");
-    }
-    if (game.lost) {
-        snprintf(text, sizeof text, "Game over");
-    }
-    if (game.pool_full) {
-        snprintf(text, sizeof text, "Object capacity reached");
-    }
-    dtext(9, 209, C_WHITE, text);
     if (ui.mode == MODAL) {
         modal();
     }
+    footer();
     dupdate();
 }
 
@@ -390,16 +657,20 @@ int ui_key(int key)
     if (key == KEY_EXIT) {
         return 0;
     }
+
     if (key == KEY_F1) {
         game_start_round();
     }
+
     if (key == KEY_F5) {
         game.speed = game.speed == 1 ? 3 : 1;
     }
+
     if (key == KEY_F6 && game.tower_count) {
         ui.tower = next_tower(-1, 1);
         ui.mode = PICK;
     }
+
     if (key == KEY_EXE) {
         ui.mode = PLACE;
         ui.x = 162;
@@ -409,12 +680,15 @@ int ui_key(int key)
     if (key == KEY_UP && ui.selected >= 2) {
         ui.selected -= 2;
     }
+
     if (key == KEY_DOWN && ui.selected + 2 < MONKEY_COUNT) {
         ui.selected += 2;
     }
+
     if (key == KEY_LEFT && ui.selected % 2) {
         ui.selected--;
     }
+
     if (key == KEY_RIGHT && !(ui.selected % 2)) {
         ui.selected++;
     }
@@ -422,6 +696,7 @@ int ui_key(int key)
     if (ui.selected / 2 < ui.first_row) {
         ui.first_row = ui.selected / 2;
     }
+
     if (ui.selected / 2 >= ui.first_row + 6) {
         ui.first_row = ui.selected / 2 - 5;
     }
