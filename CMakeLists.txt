@@ -45,6 +45,7 @@ add_executable(bloonscg
   src/monkeys/wizard_monkey.c
   src/monkeys/super_monkey.c
   src/monkeys/ninja_monkey.c
+  src/monkeys/alchemist.c
   ${ASSETS}
 )
 target_compile_options(bloonscg PRIVATE -Wall -Wextra -Os)
