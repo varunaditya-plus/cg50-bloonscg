@@ -365,8 +365,10 @@ static void hud(void)
     snprintf(text, sizeof text, "$%lu", (unsigned long)game.cash / 100);
     label(92, 1, 91, GOLD, text, DTEXT_LEFT, 1);
 
-    label(199, 6, 34, CREAM, "ROUND", DTEXT_LEFT, 0);
     snprintf(text, sizeof text, "%u/60", game.round);
+    int width;
+    dsize(text, &font_game_title, &width, NULL);
+    label(306 - width, 6, 34, CREAM, "ROUND", DTEXT_RIGHT, 0);
     label(312, 1, 75, C_WHITE, text, DTEXT_RIGHT, 1);
 }
 
