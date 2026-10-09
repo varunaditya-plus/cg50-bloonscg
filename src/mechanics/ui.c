@@ -139,13 +139,36 @@ static int world_clip(int x, int y, int width, int height, unsigned *part)
     return 0;
 }
 
+// Figma fills the viewport from the original map crop at x=5, scaled by 326/315.
+static int map_x(int world)
+{
+    int n = (screen_x(world) - 5) * 326;
+    return (n + (n < 0 ? -157 : 157)) / 315;
+}
+
+static int map_y(int world)
+{
+    int n = screen_y(world) * 326 - 2915;
+    return (n + (n < 0 ? -157 : 157)) / 315;
+}
+
+static int terrain_x(int x)
+{
+    return 5 + (x * 315 + 157) / 326;
+}
+
+static int terrain_y(int y)
+{
+    return (y * 315 + 3078) / 326;
+}
+
 static void monkey(int type, int x, int y, const bopti_image_t *img)
 {
     unsigned part = 0;
-    while (world_clip(6 + x - 8, 4 + y - 8, 16, 16, &part)) {
-        dsubimage(6 + x - 8, 4 + y - 8, img, type % 2 * 16, type / 2 * 16, 16, 16, DIMAGE_NONE);
+    while (world_clip(x - 8, y - 8, 16, 16, &part)) {
+        dsubimage(x - 8, y - 8, img, type % 2 * 16, type / 2 * 16, 16, 16, DIMAGE_NONE);
     }
-    map_mark(6 + x - 8, 4 + y - 8, 16, 16);
+    map_mark(x - 8, y - 8, 16, 16);
 }
 
 static int next_tower(int from, int step)
@@ -215,19 +238,9 @@ static void restore_map(void)
 
             int x = first * 16;
             int right = last * 16 < 326 ? last * 16 : 326;
-            if (y < 4) {
-                fill(x, y, right - x, 4 - y, C_BLACK);
-            }
-            if (x < 6) {
-                fill(x, y, 6 - x, bottom - y, C_BLACK);
-            }
-
-            int left = x < 6 ? 6 : x;
-            int top = y < 4 ? 4 : y;
             unsigned part = 0;
-            while (world_clip(left, top, right - left, bottom - top, &part)) {
-                dsubimage(left, top, &img_meadow, left - 6, top - 4, right - left, bottom - top,
-                          DIMAGE_NONE);
+            while (world_clip(x, y, right - x, bottom - y, &part)) {
+                dsubimage(x, y, &img_meadow, x, y, right - x, bottom - y, DIMAGE_NONE);
             }
         }
     }
@@ -420,7 +433,7 @@ static void footer(void)
                                     game.cash >= next->price * 100u);
         softkey(5, confirm, ui.row == SELL ? ORANGE : ready ? GREEN_UI : DISABLED, ready, 0);
     } else if (ui.mode == PLACE) {
-        int valid = can_place_monkey(ui.selected, ui.x, ui.y, -1);
+        int valid = can_place_monkey(ui.selected, terrain_x(ui.x), terrain_y(ui.y), -1);
         const char *status = valid ? "READY" : "BLOCKED";
         if (game.cash < tower_defs[ui.selected]->price * 100u) {
             status = "NO CASH";
@@ -604,7 +617,7 @@ static uint32_t footer_state(void)
                    ((game.tower_count != 0) << 11);
 
     if (ui.mode == PLACE) {
-        key |= can_place_monkey(ui.selected, ui.x, ui.y, -1) << 12;
+        key |= can_place_monkey(ui.selected, terrain_x(ui.x), terrain_y(ui.y), -1) << 12;
         key |= (game.cash >= tower_defs[ui.selected]->price * 100u) << 13;
     }
 
@@ -655,8 +668,8 @@ void ui_draw(void)
             continue;
         }
         seen++;
-        int x = 6 + screen_x(drop->x);
-        int y = 4 + screen_y(drop->y);
+        int x = map_x(drop->x);
+        int y = map_y(drop->y);
         unsigned part = 0;
         while (world_clip(x - 1, y - 1, 3, 3, &part)) {
             drect(x - 1, y - 1, x + 1, y + 1, 0xffe0);
@@ -675,8 +688,8 @@ void ui_draw(void)
         if (s->flight) {
             continue;
         }
-        int x = 6 + screen_x(s->x);
-        int y = 4 + screen_y(s->y);
+        int x = map_x(s->x);
+        int y = map_y(s->y);
         unsigned part = 0;
         while (world_clip(x - 3, y - 3, 7, 7, &part)) {
             drect_border(x - 3, y - 3, x + 3, y + 3, 0x4b44, 1, C_WHITE);
@@ -686,8 +699,8 @@ void ui_draw(void)
 
     for (unsigned i = bloon_next(0); i < BLOON_LIMIT; i = bloon_next(i + 1)) {
         Bloon *b = &game.bloons[i];
-        int x = 6 + screen_x(b->x);
-        int y = 4 + screen_y(b->y);
+        int x = map_x(b->x);
+        int y = map_y(b->y);
         if (x < 0 || x > 325 || y < 0 || y > DHEIGHT) {
             continue;
         }
@@ -713,9 +726,9 @@ void ui_draw(void)
 
     for (unsigned n = 0; n < game.shot_count; n++) {
         Shot *s = &game.shots[game.shot_active[n]];
-        int x = 6 + screen_x(s->x);
-        int y = 4 + screen_y(s->y);
-        if (x < 6 || x >= 326 || y < 4 || y >= 220) {
+        int x = map_x(s->x);
+        int y = map_y(s->y);
+        if (x < 0 || x >= 326 || y < 0 || y >= 205) {
             continue;
         }
         if (s->attack->flags & A_TRAP) {
@@ -742,24 +755,25 @@ void ui_draw(void)
             continue;
         }
         seen++;
-        monkey(t->type, screen_x(t->x), screen_y(t->y), &img_monkey_sprites);
+        monkey(t->type, map_x(t->x), map_y(t->y), &img_monkey_sprites);
         const TowerProfile *p = tower_profile(t);
         if (p && (p->support & S_AIR)) {
-            monkey(t->type, screen_x(t->air_x), screen_y(t->air_y), &img_monkey_sprites);
+            monkey(t->type, map_x(t->air_x), map_y(t->air_y), &img_monkey_sprites);
         }
     }
 
     if (ui.mode == PLACE) {
+        int valid = can_place_monkey(ui.selected, terrain_x(ui.x), terrain_y(ui.y), -1);
         monkey(ui.selected, ui.x, ui.y,
-               can_place_monkey(ui.selected, ui.x, ui.y, -1) ? &img_monkey_sprites : &red_sprites);
-        dline(6 + ui.x - 5, 4 + ui.y, 6 + ui.x + 5, 4 + ui.y, C_WHITE);
-        dline(6 + ui.x, 4 + ui.y - 5, 6 + ui.x, 4 + ui.y + 5, C_WHITE);
+               valid ? &img_monkey_sprites : &red_sprites);
+        dline(ui.x - 5, ui.y, ui.x + 5, ui.y, C_WHITE);
+        dline(ui.x, ui.y - 5, ui.x, ui.y + 5, C_WHITE);
     }
 
     if (ui.mode == PICK) {
         Tower *t = &game.towers[ui.tower];
-        int x = 6 + screen_x(t->x);
-        int y = 4 + screen_y(t->y);
+        int x = map_x(t->x);
+        int y = map_y(t->y);
         drect_border(x - 9, y - 9, x + 8, y + 8, C_NONE, 1, C_WHITE);
         map_mark(x - 9, y - 9, 18, 18);
     }
@@ -875,7 +889,7 @@ int ui_key(int key)
             return 1;
         }
 
-        if (key == KEY_EXE && game_place(ui.selected, ui.x, ui.y) >= 0) {
+        if (key == KEY_EXE && game_place(ui.selected, terrain_x(ui.x), terrain_y(ui.y)) >= 0) {
             ui.mode = SELECT;
         }
 
@@ -895,14 +909,14 @@ int ui_key(int key)
         if (ui.x < 8) {
             ui.x = 8;
         }
-        if (ui.x > 312) {
-            ui.x = 312;
+        if (ui.x > 318) {
+            ui.x = 318;
         }
         if (ui.y < 8) {
             ui.y = 8;
         }
-        if (ui.y > 193) {
-            ui.y = 193;
+        if (ui.y > 197) {
+            ui.y = 197;
         }
 
         return 1;
@@ -927,8 +941,8 @@ int ui_key(int key)
 
     if (key == KEY_EXE) {
         ui.mode = PLACE;
-        ui.x = 162;
-        ui.y = 108;
+        ui.x = 163;
+        ui.y = 102;
     }
 
     if (key == KEY_UP && ui.selected >= 2) {
