@@ -1,4 +1,5 @@
 #include "mechanics/game.h"
+#include <gint/gint.h>
 #include <gint/keyboard.h>
 #include <gint/timer.h>
 
@@ -14,6 +15,8 @@ static int tick(void)
 
 int main(void)
 {
+    // https://www.planet-casio.com/Fr/forums/topic18535-1-gint-programming-questions.html
+    gint_setrestart(1);
     game_init();
     ui_init();
 
