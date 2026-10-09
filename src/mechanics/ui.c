@@ -354,21 +354,6 @@ static int modal_next_row(const Tower *t, int row, int step)
     return row;
 }
 
-static const char *modal_confirm(const Tower *t)
-{
-    if (ui.row < 3) {
-        const Upgrade *next = tower_next_upgrade(t, ui.row);
-        if (!next) {
-            return "MAX";
-        }
-        if (!game_upgrade_allowed(ui.tower, ui.row)) {
-            return "LOCKED";
-        }
-        return game.cash >= next->price * 100u ? "BUY" : "NEED $";
-    }
-    return ui.row == SELL ? "SELL" : "COLLECT";
-}
-
 static void hud(void)
 {
     char text[32];
@@ -428,25 +413,7 @@ static void footer(void)
         softkey(4, game.speed == 1 ? "1x" : "3x", BLUE_UI, 1, 0);
         softkey(5, "UPGRADES", BLUE_UI, game.tower_count != 0, 0);
     } else if (ui.mode == MODAL) {
-        const Tower *t = &game.towers[ui.tower];
-        char text[12];
-
-        for (int path = 0; path < 3; path++) {
-            if (modal_row_visible(t, path)) {
-                snprintf(text, sizeof text, "PATH %d", path + 1);
-                softkey(path, text, BLUE_UI, 1, ui.row == path);
-            }
-        }
-
-        if (modal_row_visible(t, COLLECT)) {
-            softkey(4, "COLLECT", BLUE_UI, 1, ui.row == COLLECT);
-        }
-
-        const char *confirm = modal_confirm(t);
-        const Upgrade *next = ui.row < 3 ? tower_next_upgrade(t, ui.row) : NULL;
-        int ready = ui.row >= 3 || (next && game_upgrade_allowed(ui.tower, ui.row) &&
-                                    game.cash >= next->price * 100u);
-        softkey(5, confirm, ui.row == SELL ? ORANGE : ready ? GREEN_UI : DISABLED, ready, 0);
+        label(8, 209, 380, C_WHITE, "Arrows: navigate  EXE: confirm  EXIT: back", DTEXT_LEFT, 0);
     } else if (ui.mode == PLACE) {
         int valid = can_place_monkey(ui.selected, terrain_x(ui.x), terrain_y(ui.y), -1);
         const char *status = valid ? "READY" : "BLOCKED";
@@ -635,7 +602,7 @@ static uint32_t selector_state(void)
 
 static uint32_t footer_state(void)
 {
-    uint32_t key = ui.mode | ((unsigned)ui.row << 2) | ((unsigned)game.speed << 5) |
+    uint32_t key = ui.mode | ((unsigned)game.speed << 5) |
                    ((unsigned)game.running << 7) | ((unsigned)game.won << 8) |
                    ((unsigned)game.lost << 9) | ((unsigned)game.pool_full << 10) |
                    ((game.tower_count != 0) << 11);
@@ -643,18 +610,6 @@ static uint32_t footer_state(void)
     if (ui.mode == PLACE) {
         key |= can_place_monkey(ui.selected, terrain_x(ui.x), terrain_y(ui.y), -1) << 12;
         key |= (game.cash >= tower_defs[ui.selected]->price * 100u) << 13;
-    }
-
-    if (ui.mode == MODAL) {
-        const Tower *t = &game.towers[ui.tower];
-        key |= modal_row_visible(t, COLLECT) << 17;
-
-        if (ui.row < 3) {
-            const Upgrade *next = tower_next_upgrade(t, ui.row);
-            key |= (next != NULL) << 14;
-            key |= game_upgrade_allowed(ui.tower, ui.row) << 15;
-            key |= (next && game.cash >= next->price * 100u) << 16;
-        }
     }
 
     return key;
@@ -870,16 +825,15 @@ int ui_key(int key)
             ui.row = modal_next_row(t, ui.row, 1);
         }
 
-        int function = keycode_function(key);
-        if (function >= 1 && function <= 3 && modal_row_visible(t, function - 1)) {
-            ui.row = function - 1;
-        }
-        if (key == KEY_F5 && modal_row_visible(t, COLLECT)) {
+        if (key == KEY_LEFT && ui.row >= COLLECT && modal_row_visible(t, COLLECT)) {
             ui.row = COLLECT;
+        }
+        if (key == KEY_RIGHT && ui.row >= COLLECT) {
+            ui.row = SELL;
         }
 
         // Focus changes never spend money or sell a tower.
-        if (key == KEY_EXE || key == KEY_F6) {
+        if (key == KEY_EXE) {
             modal_activate();
         }
 
