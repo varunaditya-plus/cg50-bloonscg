@@ -85,7 +85,7 @@ static void modal(void)
     char text[80];
 
     drect_border(21, 20, 314, 204, 0x2104, 1, C_WHITE);
-    dtext(29, 26, C_WHITE, definition ? definition->name : monkey_names[t->type]);
+    dtext(29, 26, C_WHITE, definition->name);
     if (p) {
         snprintf(text, sizeof text, "%d-%d-%d  $%lu", p->tiers[0], p->tiers[1], p->tiers[2],
                  (unsigned long)game.cash / 100);
@@ -251,9 +251,7 @@ void ui_draw(void)
     snprintf(text, sizeof text, "F1:Start  F5:%ux  F6:Upgrade", game.speed);
     if (ui.mode == PLACE) {
         const TowerDef *definition = tower_defs[ui.selected];
-        snprintf(text, sizeof text, "%s $%u  EXE:Place",
-                 definition ? definition->name : monkey_names[ui.selected],
-                 definition ? definition->price : monkey_prices[ui.selected]);
+        snprintf(text, sizeof text, "%s $%u  EXE:Place", definition->name, definition->price);
     } else if (ui.mode == PICK) {
         snprintf(text, sizeof text, "Arrows:Monkey EXE:Open EXIT:Back");
     } else if (ui.mode == MODAL) {

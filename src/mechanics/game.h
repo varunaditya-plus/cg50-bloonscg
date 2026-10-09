@@ -409,8 +409,6 @@ _Static_assert(sizeof(Game) < 11 * 1024 * 1024 / 2, "Game exceeds reserved CG50 
 extern Game game;
 #endif
 extern const TowerDef *tower_defs[MONKEY_COUNT];
-extern const char *const monkey_names[MONKEY_COUNT];
-extern const uint16_t monkey_prices[MONKEY_COUNT];
 extern const BloonDef bloon_defs[BLOON_TYPES];
 extern const RoundGroup round_groups[];
 extern const RoundDef rounds[60];

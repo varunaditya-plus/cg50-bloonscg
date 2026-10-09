@@ -23,6 +23,7 @@ extern const TowerDef druid_def;
 extern const TowerDef banana_farm_def;
 extern const TowerDef spike_factory_def;
 extern const TowerDef monkey_village_def;
+extern const TowerDef engineer_monkey_def;
 const TowerDef *tower_defs[MONKEY_COUNT] = {
     [0] = &dart_monkey_def,     [1] = &boomerang_monkey_def, [2] = &bomb_shooter_def,
     [3] = &tack_shooter_def,    [4] = &ice_monkey_def,       [5] = &glue_gunner_def,
@@ -30,17 +31,8 @@ const TowerDef *tower_defs[MONKEY_COUNT] = {
     [9] = &mortar_monkey_def,   [10] = &dartling_gunner_def, [11] = &wizard_monkey_def,
     [12] = &super_monkey_def,   [13] = &ninja_monkey_def,    [14] = &alchemist_def,
     [15] = &druid_def,          [16] = &banana_farm_def,     [17] = &spike_factory_def,
-    [18] = &monkey_village_def,
+    [18] = &monkey_village_def, [19] = &engineer_monkey_def,
 };
-
-const char *const monkey_names[MONKEY_COUNT] = {
-    "Dart Monkey",     "Boomerang Monkey", "Bomb Shooter",  "Tack Shooter",   "Ice Monkey",
-    "Glue Gunner",     "Sniper Monkey",    "Monkey Ace",    "Heli Pilot",     "Mortar Monkey",
-    "Dartling Gunner", "Wizard Monkey",    "Super Monkey",  "Ninja Monkey",   "Alchemist",
-    "Druid",           "Banana Farm",      "Spike Factory", "Monkey Village", "Engineer Monkey"};
-const uint16_t monkey_prices[MONKEY_COUNT] = {200, 315, 375,  260, 400, 225, 350,  800,  1600, 750,
-                                              850, 375, 2500, 500, 550, 400, 1250, 1000, 1200, 400};
-
 extern const uint8_t meadow_placement[];
 
 // Q4 squared distances avoid 64-bit division in collision loops.
@@ -105,8 +97,7 @@ void game_init(void)
     memset(&game, 0, sizeof game);
     combat_reset_cache();
     shots_init();
-    // Medium Standard:
-    // https://github.com/KyleDerZweite/btd6-atlas/tree/ded3155921d70cd83d803b4d70022000e4c37c6b
+    // Medium Standard: https://github.com/KyleDerZweite/btd6-atlas/tree/ded3155921d70cd83d803b4d70022000e4c37c6b
     game.cash = 65000;
     game.lives = 150;
     game.speed = 1;
@@ -166,8 +157,9 @@ int can_place_monkey(unsigned type, int x, int y, int ignore)
         return 0;
     const TowerProfile *p = ignore >= 0 && ignore < TOWER_LIMIT && game.towers[ignore].active
                                 ? tower_profile(&game.towers[ignore])
-                            : tower_defs[type]->profile_count ? &tower_defs[type]->profiles[0]
-                                                              : NULL;
+                            : tower_defs[type]->profile_count
+                                ? &tower_defs[type]->profiles[0]
+                                : NULL;
 
     if (!p)
         return 0;
