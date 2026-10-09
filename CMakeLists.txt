@@ -37,6 +37,7 @@ add_executable(bloonscg
   src/monkeys/tack_shooter.c
   src/monkeys/ice_monkey.c
   src/monkeys/glue_gunner.c
+  src/monkeys/sniper_monkey.c
   ${ASSETS}
 )
 target_compile_options(bloonscg PRIVATE -Wall -Wextra -Os)
