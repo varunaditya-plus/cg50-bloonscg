@@ -901,7 +901,7 @@ int ui_key(int key)
     }
 
     if (key == KEY_EXIT) {
-        return 0;
+        return 1;
     }
 
     if (key == KEY_F1) {
