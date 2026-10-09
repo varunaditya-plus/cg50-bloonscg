@@ -1,0 +1,90 @@
+#include "mechanics/game.h"
+
+// https://github.com/KyleDerZweite/btd6-atlas/tree/ded3155921d70cd83d803b4d70022000e4c37c6b/data/56.3-build-24829026/game-data/Towers/BananaFarm
+// Portrait: https://www.spriters-resource.com/pc_computer/bloonstd6/asset/128024/
+// Model: https://models.spriters-resource.com/pc_computer/bloonstd6/asset/339181/
+
+static const Upgrade banana_farm_data_0[] = {
+    {.name = "Increased Production", .price = 500, .icon = 113},
+    {.name = "Greater Production", .price = 600, .icon = 114},
+    {.name = "Banana Plantation", .price = 3000, .icon = 115},
+};
+static const TowerProfile banana_farm_data_1[] = {
+    {
+        .tiers = {0, 0, 0},
+        .range = 10240,
+        .buff_speed = 1000,
+        .footprint_rectangle = 1,
+        .footprint_x = 7680,
+        .footprint_y = 7680,
+        .support = S_FARM,
+        .income = 20,
+        .income_count = 4,
+        .income_period = 300,
+        .income_life = 90000,
+        .income_radius = 12800,
+        .income_min_radius = 5120,
+        .income_max_radius = 10240,
+        .attacks = {},
+    },
+    {
+        .tiers = {1, 0, 0},
+        .range = 10240,
+        .buff_speed = 1000,
+        .footprint_rectangle = 1,
+        .footprint_x = 7680,
+        .footprint_y = 7680,
+        .support = S_FARM,
+        .income = 20,
+        .income_count = 6,
+        .income_period = 300,
+        .income_life = 90000,
+        .income_radius = 12800,
+        .income_min_radius = 5120,
+        .income_max_radius = 10240,
+        .attacks = {},
+    },
+    {
+        .tiers = {2, 0, 0},
+        .range = 10240,
+        .buff_speed = 1000,
+        .footprint_rectangle = 1,
+        .footprint_x = 7680,
+        .footprint_y = 7680,
+        .support = S_FARM,
+        .income = 20,
+        .income_count = 8,
+        .income_period = 300,
+        .income_life = 90000,
+        .income_radius = 12800,
+        .income_min_radius = 5120,
+        .income_max_radius = 10240,
+        .attacks = {},
+    },
+    {
+        .tiers = {3, 0, 0},
+        .range = 10240,
+        .buff_speed = 1000,
+        .footprint_rectangle = 1,
+        .footprint_x = 7680,
+        .footprint_y = 7680,
+        .support = S_FARM,
+        .income = 20,
+        .income_count = 16,
+        .income_period = 300,
+        .income_life = 90000,
+        .income_radius = 12800,
+        .income_min_radius = 5120,
+        .income_max_radius = 10240,
+        .attacks = {},
+    },
+};
+
+const TowerDef banana_farm_def = {
+    .name = "Banana Farm",
+    .price = 1250,
+    .caps = {3, 0, 0},
+    .profile_count = 4,
+    .profiles = banana_farm_data_1,
+    .upgrades = {banana_farm_data_0, NULL, NULL},
+};
