@@ -32,11 +32,14 @@ static unsigned own_range(const Tower *t, const TowerProfile *p)
 
 void support_begin_tick(void)
 {
+    uint16_t active_ids[TOWER_LIMIT];
+    unsigned active_count = 0;
     for (unsigned i = 0; i < TOWER_LIMIT; i++) {
         Tower *t = &game.towers[i];
         t->support_rate = t->support_range = t->support_pierce = 1000;
         t->support_immunity = t->support_camo = 0;
         if (t->active) {
+            active_ids[active_count++] = i;
             t->buff_clock = timer(t->buff_clock);
             t->brew_block = timer(t->brew_block);
             if (!t->buff_clock || !t->buff_shots)
@@ -47,10 +50,11 @@ void support_begin_tick(void)
     uint16_t queue[TOWER_LIMIT * 2];
     unsigned head = 0, tail = 0;
 
-    for (unsigned i = 0; i < TOWER_LIMIT; i++) {
+    for (unsigned n = 0; n < active_count; n++) {
+        unsigned i = active_ids[n];
         Tower *t = &game.towers[i];
         const TowerProfile *p = tower_profile(t);
-        if (t->active && p && (p->support & S_VILLAGE))
+        if (p && (p->support & S_VILLAGE))
             queue[tail++] = i;
     }
 
@@ -59,10 +63,11 @@ void support_begin_tick(void)
         const TowerProfile *p = tower_profile(t);
         unsigned radius = own_range(t, p) * t->support_range / 1000;
         unsigned factor = p->buff_range_multiplier ? p->buff_range_multiplier : 1000;
-        for (unsigned j = 0; j < TOWER_LIMIT; j++) {
+        for (unsigned n = 0; n < active_count; n++) {
+            unsigned j = active_ids[n];
             Tower *v = &game.towers[j];
             const TowerProfile *vp = tower_profile(v);
-            if (!v->active || !vp || !(vp->support & S_VILLAGE) || v == t ||
+            if (!vp || !(vp->support & S_VILLAGE) || v == t ||
                 factor <= v->support_range || !nearby(t, v, radius))
                 continue;
             v->support_range = factor;
@@ -71,16 +76,18 @@ void support_begin_tick(void)
         }
     }
 
-    for (unsigned i = 0; i < TOWER_LIMIT; i++) {
+    for (unsigned n = 0; n < active_count; n++) {
+        unsigned i = active_ids[n];
         Tower *t = &game.towers[i];
         const TowerProfile *p = tower_profile(t);
-        if (!t->active || !p || !(p->support & S_VILLAGE))
+        if (!p || !(p->support & S_VILLAGE))
             continue;
         unsigned radius = own_range(t, p) * t->support_range / 1000;
-        for (unsigned j = 0; j < TOWER_LIMIT; j++) {
+        for (unsigned k = 0; k < active_count; k++) {
+            unsigned j = active_ids[k];
             Tower *v = &game.towers[j];
             const TowerProfile *vp = tower_profile(v);
-            if (i == j || !v->active || !vp || !nearby(t, v, radius))
+            if (i == j || !vp || !nearby(t, v, radius))
                 continue;
             unsigned factor = p->buff_range_multiplier ? p->buff_range_multiplier : 1000;
             if (factor > v->support_range)
@@ -92,16 +99,18 @@ void support_begin_tick(void)
         }
     }
 
-    for (unsigned j = 0; j < TOWER_LIMIT; j++) {
+    for (unsigned n = 0; n < active_count; n++) {
+        unsigned j = active_ids[n];
         Tower *v = &game.towers[j];
-        if (!v->active || v->type != 13)
+        if (v->type != 13)
             continue;
         unsigned stacks = 0, maximum = 20;
         uint32_t rate = 1000000000u;
-        for (unsigned i = 0; i < TOWER_LIMIT && stacks < maximum; i++) {
+        for (unsigned k = 0; k < active_count && stacks < maximum; k++) {
+            unsigned i = active_ids[k];
             Tower *t = &game.towers[i];
             const TowerProfile *p = tower_profile(t);
-            if (i == j || !t->active || !p || !(p->support & S_SHINOBI))
+            if (i == j || !p || !(p->support & S_SHINOBI))
                 continue;
             unsigned radius = own_range(t, p) * t->support_range / 1000;
             if (!nearby(t, v, radius))

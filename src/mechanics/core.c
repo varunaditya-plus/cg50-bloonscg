@@ -95,6 +95,7 @@ uint32_t game_random(void)
 void game_init(void)
 {
     memset(&game, 0, sizeof game);
+    bloons_reset_cache();
     combat_reset_cache();
     shots_init();
     // Medium Standard: https://github.com/KyleDerZweite/btd6-atlas/tree/ded3155921d70cd83d803b4d70022000e4c37c6b

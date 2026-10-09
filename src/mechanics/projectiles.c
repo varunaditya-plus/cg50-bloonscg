@@ -58,7 +58,7 @@ static int homing_target(const Shot *s)
     int target = -1;
     int32_t best = INT32_MAX;
 
-    for (unsigned n = 0; n < BLOON_LIMIT; n++) {
+    for (int n = bloon_next(0); n >= 0; n = bloon_next(n + 1)) {
         const Bloon *b = &game.bloons[n];
         if (!b->active || shot_history_contains(s, n) || ((b->flags & CAMO) && !s->camo))
             continue;
@@ -340,8 +340,8 @@ int projectile_step(Shot *s, int32_t *nx, int32_t *ny)
 
     if (a->flags & A_HOMING)
         home(s);
-    *nx = s->x + (int64_t)s->vx * TICK / 6000;
-    *ny = s->y + (int64_t)s->vy * TICK / 6000;
+    *nx = s->x + s->vx / 50;
+    *ny = s->y + s->vy / 50;
 
     if (a->curve_kind == 2 && a->curve_count > 1) {
         unsigned duration = s->curve_time ? s->curve_time : TICK;

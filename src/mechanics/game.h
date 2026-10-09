@@ -382,7 +382,7 @@ typedef struct {
 } RoundDef;
 typedef struct {
     int32_t x, y;
-    uint32_t distance;
+    uint32_t distance, reciprocal;
 } PathPoint;
 typedef struct {
     Tower towers[TOWER_LIMIT];
@@ -435,6 +435,9 @@ const TowerProfile *tower_profile(const Tower *tower);
 const Upgrade *tower_next_upgrade(const Tower *tower, unsigned path);
 void game_sell(unsigned tower);
 int bloon_spawn(unsigned type, unsigned flags, int32_t distance, unsigned max_regrow);
+int bloon_next(unsigned start);
+void bloons_reset_cache(void);
+void bloon_remove(Bloon *bloon);
 void bloons_tick(void);
 void rounds_tick(void);
 int bloon_damage(unsigned id, unsigned damage, unsigned immunity, unsigned owner);
@@ -472,7 +475,10 @@ int tower_target(const Tower *tower, const AttackDef *attack, int32_t x, int32_t
 void attack_emit(unsigned owner, const AttackDef *attack, int32_t x, int32_t y, int target);
 void shot_hit(unsigned shot, unsigned bloon);
 void combat_effect(unsigned bloon, const AttackDef *attack, unsigned owner);
-void combat_bloon_pop(const Bloon *bloon);
+typedef struct CombatPop CombatPop;
+CombatPop *combat_pop_begin(const Bloon *bloon);
+int combat_pop_next(CombatPop *pop, unsigned *enemy, unsigned *damage, unsigned *immunity);
+void combat_pop_finish(CombatPop *pop);
 void support_begin_tick(void);
 void support_tick(unsigned owner, const TowerProfile *profile);
 void support_units_tick(void);

@@ -55,8 +55,7 @@ int trap_capture(Shot *s, unsigned enemy)
 
     if (!b->cash_disabled)
         game.towers[s->owner].pops += rbe;
-    b->active = 0;
-    game.bloon_count--;
+    bloon_remove(b);
 
     if (s->trap_used >= capacity)
         s->trap_close = a->trap_close_delay ? a->trap_close_delay : TICK;

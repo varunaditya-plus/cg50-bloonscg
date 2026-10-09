@@ -56,7 +56,7 @@ add_executable(bloonscg
   src/monkeys/engineer_monkey.c
   ${ASSETS}
 )
-target_compile_options(bloonscg PRIVATE -Wall -Wextra -Os)
+target_compile_options(bloonscg PRIVATE -Wall -Wextra -O3 -fno-strict-aliasing)
 target_include_directories(bloonscg PRIVATE src)
 target_link_libraries(bloonscg Gint::Gint)
 

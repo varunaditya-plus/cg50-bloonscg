@@ -1,4 +1,5 @@
 #include "game.h"
+#include <stdlib.h>
 #include <string.h>
 
 // Q14 sine values keep projectile rotation in integer arithmetic.
@@ -42,6 +43,7 @@ enum { CELLS_X = 20, CELLS_Y = 16, CELL = 16 * Q };
 static int16_t heads[CELLS_X * CELLS_Y], next[BLOON_LIMIT];
 static uint16_t active_ids[BLOON_LIMIT], outside_ids[BLOON_LIMIT];
 static unsigned active_count, outside_count;
+static unsigned indexed_radius;
 static uint32_t indexed_time;
 static unsigned indexed_bloons, index_valid;
 static Shot *impact;
@@ -50,6 +52,8 @@ typedef struct {
     uint32_t token, fraction;
 } CollisionHit;
 static CollisionHit collision_hits[BLOON_LIMIT];
+static uint32_t area_tokens[BLOON_LIMIT];
+static unsigned area_tokens_in_use;
 static int later_hit(CollisionHit a, CollisionHit b)
 {
     return a.fraction > b.fraction ||
@@ -135,21 +139,23 @@ static void index_bloons(void)
 {
     memset(heads, 255, sizeof heads);
     active_count = outside_count = 0;
-    for (int i = 0; i < BLOON_LIMIT; i++)
-        if (game.bloons[i].active) {
-            active_ids[active_count++] = i;
-            Bloon *b = &game.bloons[i];
-            int x = cell_x(b->x), y = cell_y(b->y);
-            if (b->x < -160 * Q || b->y < -128 * Q || x < 0 || x >= CELLS_X || y < 0 ||
-                y >= CELLS_Y) {
-                next[i] = -1;
-                outside_ids[outside_count++] = i;
-                continue;
-            }
-            int cell = y * CELLS_X + x;
-            next[i] = heads[cell];
-            heads[cell] = i;
+    indexed_radius = 0;
+    for (int i = bloon_next(0); i >= 0; i = bloon_next(i + 1)) {
+        active_ids[active_count++] = i;
+        Bloon *b = &game.bloons[i];
+        if (bloon_defs[b->type].radius > indexed_radius)
+            indexed_radius = bloon_defs[b->type].radius;
+        int x = cell_x(b->x), y = cell_y(b->y);
+        if (b->x < -160 * Q || b->y < -128 * Q || x < 0 || x >= CELLS_X || y < 0 ||
+            y >= CELLS_Y) {
+            next[i] = -1;
+            outside_ids[outside_count++] = i;
+            continue;
         }
+        int cell = y * CELLS_X + x;
+        next[i] = heads[cell];
+        heads[cell] = i;
+    }
     indexed_time = game.time;
     indexed_bloons = game.bloon_count;
     index_valid = 1;
@@ -386,16 +392,29 @@ static int new_shot(unsigned owner, const AttackDef *a, int32_t x, int32_t y)
     return id;
 }
 
+static int32_t normalised(int32_t value, int32_t scale, unsigned divisor)
+{
+    int64_t product = (int64_t)value * scale;
+    if (product >= INT32_MIN && product <= INT32_MAX && divisor <= INT32_MAX)
+        return (int32_t)product / (int32_t)divisor;
+    return product / divisor;
+}
+
 static void aim(Shot *s, int32_t x, int32_t y)
 {
     int32_t dx = x - s->x, dy = y - s->y;
     unsigned d = integer_sqrt(distance_squared(x, y, s->x, s->y)) * 16;
     if (!d)
         d = 1;
-    s->dir_x = (int32_t)((int64_t)dx * 16384 / d);
-    s->dir_y = (int32_t)((int64_t)dy * 16384 / d);
-    s->vx = (int32_t)((int64_t)dx * s->attack->speed / d);
-    s->vy = (int32_t)((int64_t)dy * s->attack->speed / d);
+    s->dir_x = normalised(dx, 16384, d);
+    s->dir_y = normalised(dy, 16384, d);
+    if (s->attack->flags & A_RADIAL) {
+        s->vx = s->attack->speed;
+        s->vy = 0;
+    } else {
+        s->vx = normalised(dx, s->attack->speed, d);
+        s->vy = normalised(dy, s->attack->speed, d);
+    }
 }
 
 static void rotate(Shot *s, int degrees)
@@ -418,11 +437,28 @@ static void area_hit(unsigned owner, const AttackDef *a, int32_t x, int32_t y, u
     if (!left)
         left = 65535;
 
-    // Snapshot generations so newly spawned descendants are not hit again.
-    uint32_t ids[BLOON_LIMIT];
+    // Nested blasts need independent snapshots without exhausting the 16 KiB SH stack.
+    uint32_t local_ids[32];
+    uint32_t *ids = local_ids;
+    int heap_ids = 0, shared_ids = 0;
+
+    if (game.bloon_count > 32) {
+        if (!area_tokens_in_use) {
+            ids = area_tokens;
+            area_tokens_in_use = shared_ids = 1;
+        } else {
+            ids = malloc(game.bloon_count * sizeof *ids);
+            if (!ids) {
+                game.pool_full = 1;
+                return;
+            }
+            heap_ids = 1;
+        }
+    }
+
     unsigned count = 0;
 
-    for (unsigned i = 0; i < BLOON_LIMIT; i++) {
+    for (int i = bloon_next(0); i >= 0; i = bloon_next(i + 1)) {
         Bloon *b = &game.bloons[i];
         if (!eligible(&game.towers[owner], a, b))
             continue;
@@ -442,6 +478,11 @@ static void area_hit(unsigned owner, const AttackDef *a, int32_t x, int32_t y, u
         bloon_damage(i, n, impact ? (a->immunity & ~impact->immunity_removed) : immunity(owner, a),
                      owner);
     }
+
+    if (shared_ids)
+        area_tokens_in_use = 0;
+    if (heap_ids)
+        free(ids);
 }
 
 static void children(unsigned owner, const AttackDef *a, unsigned trigger, int32_t x, int32_t y,
@@ -526,7 +567,7 @@ static void emit(unsigned owner, const AttackDef *a, int32_t x, int32_t y, int t
         Tower *t = &game.towers[owner];
         unsigned left = impact->pierce, count = 0;
         Shot ray = {.x = x, .y = y};
-        for (unsigned i = 0; i < BLOON_LIMIT; i++) {
+        for (int i = bloon_next(0); i >= 0; i = bloon_next(i + 1)) {
             Bloon *b = &game.bloons[i];
             if (!eligible(t, a, b))
                 continue;
@@ -569,6 +610,17 @@ static void emit(unsigned owner, const AttackDef *a, int32_t x, int32_t y, int t
         return;
     }
     unsigned count = a->count ? a->count : 1;
+    Shot direction;
+    direction.x = x;
+    direction.y = y;
+    direction.attack = a;
+    int32_t ax = target < 0 ? game.towers[owner].aim_x : game.bloons[target].x;
+    int32_t ay = target < 0 ? game.towers[owner].aim_y : game.bloons[target].y;
+    aim(&direction, ax, ay);
+    int shared_setup = a->target_kind != 3 && !a->fixed_target && a->curve_kind != 2 &&
+                       !a->random_spread &&
+                       !(a->trigger == TR_MAIN &&
+                         (a->flags & (A_SPIKE | A_WALL | A_FOAM | A_TRAP | A_MORTAR)));
 
     for (unsigned n = 0; n < count; n++) {
         int id = new_shot(owner, a, x, y);
@@ -576,16 +628,22 @@ static void emit(unsigned owner, const AttackDef *a, int32_t x, int32_t y, int t
             break;
         Shot *s = &game.shots[id];
         s->target = target < 0 ? UINT16_MAX : target;
-        int32_t ax = target < 0 ? game.towers[owner].aim_x : game.bloons[target].x;
-        int32_t ay = target < 0 ? game.towers[owner].aim_y : game.bloons[target].y;
-        aim(s, ax, ay);
+        s->dir_x = direction.dir_x;
+        s->dir_y = direction.dir_y;
+        s->vx = direction.vx;
+        s->vy = direction.vy;
         if (a->flags & A_RADIAL) {
             s->vx = a->speed;
             s->vy = 0;
             rotate(s, n * 360 / count);
         } else if (count > 1)
             rotate(s, ((int)n * 2 - (int)count + 1) * a->spread / 2);
-        if (!projectile_setup(s, a, owner, target)) {
+        if (shared_setup) {
+            // Ordinary volleys share both the direction and deterministic destination.
+            s->destination_x = ax;
+            s->destination_y = ay;
+            s->curve_time = a->curve_time;
+        } else if (!projectile_setup(s, a, owner, target)) {
             shot_release(s);
             continue;
         }
@@ -705,7 +763,7 @@ void shots_tick(void)
                 target = -1;
             if (target < 0) {
                 int32_t best = INT32_MAX;
-                for (unsigned b = 0; b < BLOON_LIMIT; b++)
+                for (int b = bloon_next(0); b >= 0; b = bloon_next(b + 1))
                     if (eligible(&game.towers[s->owner], a, &game.bloons[b]) &&
                         !shot_history_contains(s, b)) {
                         int32_t d =
@@ -740,7 +798,13 @@ void shots_tick(void)
         int32_t nx, ny;
         int collision_ready = projectile_step(s, &nx, &ny);
 
-        int radius = a->radius + 30 * Q;
+        // Two truncated Q4 coordinates can expand a contact by up to 30 Q8 units.
+        unsigned bloon_radius = indexed_radius + 31;
+        if (bloon_radius > 30 * Q || (uint32_t)s->x + 200000u > 400000u ||
+            (uint32_t)s->y + 200000u > 400000u || (uint32_t)nx + 200000u > 400000u ||
+            (uint32_t)ny + 200000u > 400000u)
+            bloon_radius = 30 * Q;
+        int radius = a->radius + bloon_radius;
         int x0 = clamp(cell_x((s->x < nx ? s->x : nx) - radius), 0, CELLS_X - 1);
         int x1 = clamp(cell_x((s->x > nx ? s->x : nx) + radius), 0, CELLS_X - 1);
         int y0 = clamp(cell_y((s->y < ny ? s->y : ny) - radius), 0, CELLS_Y - 1);
@@ -884,36 +948,141 @@ void combat_effect(unsigned id, const AttackDef *a, unsigned owner)
         }
 }
 
-void combat_bloon_pop(const Bloon *b)
+struct CombatPop {
+    const Bloon *parent;
+    AttackDef blast;
+    Shot context;
+    Shot *previous_impact;
+    uint32_t local_ids[32], *ids;
+    unsigned child, count, cursor, left;
+    uint8_t area_active, pooled;
+};
+
+static CombatPop pop_frames[16];
+static unsigned pop_depth;
+
+CombatPop *combat_pop_begin(const Bloon *b)
 {
     if (!b->pop_attack)
-        return;
+        return NULL;
+    int immediate = 0;
     for (unsigned i = 0; i < b->pop_attack->child_count; i++) {
         const AttackDef *child = &b->pop_attack->children[i];
+        if (child->trigger == TR_POP && child->source_damage_count)
+            immediate = 1;
+    }
+    if (!immediate) {
+        for (unsigned i = 0; i < b->pop_attack->child_count; i++) {
+            const AttackDef *child = &b->pop_attack->children[i];
+            if (child->trigger == TR_POP)
+                attack_emit(b->pop_source, child, b->x, b->y, -1);
+        }
+        return NULL;
+    }
+
+    CombatPop *pop = pop_depth < 16 ? &pop_frames[pop_depth] : malloc(sizeof *pop);
+    if (!pop) {
+        game.pool_full = 1;
+        return NULL;
+    }
+    pop->pooled = pop_depth < 16;
+    pop_depth++;
+    pop->parent = b;
+    pop->child = 0;
+    pop->area_active = 0;
+    return pop;
+}
+
+static void pop_area_finish(CombatPop *pop)
+{
+    if (!pop->area_active)
+        return;
+    impact = pop->previous_impact;
+    if (pop->ids != pop->local_ids)
+        free(pop->ids);
+    pop->area_active = 0;
+}
+
+static int pop_area_begin(CombatPop *pop, const AttackDef *child)
+{
+    const Bloon *b = pop->parent;
+    pop->blast = *child;
+    unsigned normal = child->default_bloon_damage, large = child->default_moab_damage;
+    unsigned source = tags(b);
+    for (unsigned i = 0; i < child->source_damage_count; i++) {
+        const AttackDamageSource *damage = &child->source_damage[i];
+        if (source & damage->source_tag) {
+            normal = damage->bloon_damage;
+            large = damage->moab_damage;
+            break;
+        }
+    }
+    pop->blast.damage = normal;
+    pop->blast.moab = large - normal;
+    memset(&pop->context, 0, sizeof pop->context);
+    pop->context.attack = &pop->blast;
+    support_shot(b->pop_source, &pop->blast, &pop->context);
+    pop->previous_impact = impact;
+    impact = &pop->context;
+    pop->left = pop->context.pierce ? pop->context.pierce : 65535;
+    pop->cursor = pop->count = 0;
+    pop->ids = pop->local_ids;
+
+    if (game.bloon_count > 32) {
+        pop->ids = malloc(game.bloon_count * sizeof *pop->ids);
+        if (!pop->ids) {
+            game.pool_full = 1;
+            impact = pop->previous_impact;
+            return 0;
+        }
+    }
+    pop->area_active = 1;
+    for (int id = bloon_next(0); id >= 0; id = bloon_next(id + 1)) {
+        Bloon *enemy = &game.bloons[id];
+        if (eligible(&game.towers[b->pop_source], &pop->blast, enemy) &&
+            collision_area_contains(&pop->blast, b->x, b->y, enemy))
+            pop->ids[pop->count++] = ((uint32_t)enemy->generation << 16) | id;
+    }
+    return 1;
+}
+
+int combat_pop_next(CombatPop *pop, unsigned *enemy, unsigned *damage, unsigned *immunity)
+{
+    for (;;) {
+        while (pop->area_active && pop->cursor < pop->count && pop->left) {
+            uint32_t token = pop->ids[pop->cursor++];
+            unsigned id = token & 65535;
+            Bloon *b = &game.bloons[id];
+            if (!b->active || b->generation != token >> 16)
+                continue;
+            *enemy = id;
+            *damage = damage_value(&pop->blast, b, pop->blast.damage + pop->context.damage_bonus);
+            hit_effects(id, &pop->blast, pop->parent->pop_source);
+            *immunity = pop->blast.immunity & ~pop->context.immunity_removed;
+            pop->left--;
+            return 1;
+        }
+        pop_area_finish(pop);
+
+        const AttackDef *attack = pop->parent->pop_attack;
+        if (pop->child >= attack->child_count)
+            return 0;
+        const AttackDef *child = &attack->children[pop->child++];
         if (child->trigger != TR_POP)
             continue;
-        if (child->source_damage_count) {
-            AttackDef blast = *child;
-            unsigned normal = child->default_bloon_damage, large = child->default_moab_damage;
-            unsigned source = tags(b);
-            for (unsigned j = 0; j < child->source_damage_count; j++) {
-                const AttackDamageSource *d = &child->source_damage[j];
-                if (source & d->source_tag) {
-                    normal = d->bloon_damage;
-                    large = d->moab_damage;
-                    break;
-                }
-            }
-            blast.damage = normal;
-            blast.moab = large - normal;
-            Shot *previous = impact;
-            Shot context = {0};
-            context.attack = &blast;
-            support_shot(b->pop_source, &blast, &context);
-            impact = &context;
-            area_hit(b->pop_source, &blast, b->x, b->y, normal);
-            impact = previous;
-        } else
-            attack_emit(b->pop_source, child, b->x, b->y, -1);
+        if (child->source_damage_count)
+            pop_area_begin(pop, child);
+        else
+            attack_emit(pop->parent->pop_source, child, pop->parent->x, pop->parent->y, -1);
     }
+}
+
+void combat_pop_finish(CombatPop *pop)
+{
+    if (!pop)
+        return;
+    pop_area_finish(pop);
+    pop_depth--;
+    if (!pop->pooled)
+        free(pop);
 }

@@ -139,7 +139,7 @@ static int pursuit_target(const Tower *t, const TowerProfile *p)
     for (unsigned i = 0; i < p->attack_count; i++)
         camo |= p->attacks[i].camo;
 
-    for (unsigned i = 0; i < BLOON_LIMIT; i++) {
+    for (int i = bloon_next(0); i >= 0; i = bloon_next(i + 1)) {
         const Bloon *b = &game.bloons[i];
         if (!b->active || ((b->flags & CAMO) && !camo))
             continue;

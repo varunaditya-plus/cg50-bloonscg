@@ -25,6 +25,16 @@ typedef struct {
 UI ui;
 static uint16_t red_palette[256];
 static bopti_image_t red_sprites;
+static uint32_t map_dirty[13];
+static uint16_t *render_vram;
+static uint32_t selector_key, footer_key;
+static unsigned hud_cash, hud_lives, hud_round;
+static int previous_mode;
+static struct {
+    int valid, tower, type, profile, row;
+    uint32_t pops, spent;
+    unsigned affordable;
+} modal_cache;
 
 #define UI_RGB(hex) (((hex >> 19) & 31) << 11 | ((hex >> 10) & 63) << 5 | ((hex >> 3) & 31))
 enum {
@@ -49,6 +59,11 @@ enum {
 void ui_init(void)
 {
     ui = (UI){0};
+    render_vram = NULL;
+    selector_key = footer_key = UINT32_MAX;
+    hud_cash = hud_lives = hud_round = UINT32_MAX;
+    previous_mode = SELECT;
+    modal_cache.valid = 0;
     red_sprites = img_monkey_sprites;
     red_sprites.palette = red_palette;
 
@@ -59,9 +74,78 @@ void ui_init(void)
     }
 }
 
+static void map_mark(int x, int y, int width, int height)
+{
+    int right = x + width - 1;
+    int bottom = y + height - 1;
+
+    if (right < 0 || bottom < 0 || x >= 326 || y >= 205) {
+        return;
+    }
+    if (ui.mode == MODAL && x >= 14 && y >= 22 && bottom < 202) {
+        return;
+    }
+
+    if (x < 0) {
+        x = 0;
+    }
+    if (y < 0) {
+        y = 0;
+    }
+    if (right > 325) {
+        right = 325;
+    }
+    if (bottom > 204) {
+        bottom = 204;
+    }
+
+    unsigned left_tile = (unsigned)x >> 4;
+    unsigned right_tile = (unsigned)right >> 4;
+    uint32_t mask = ((2u << right_tile) - 1) & ~((1u << left_tile) - 1);
+
+    for (int row = y >> 4; row <= bottom >> 4; row++) {
+        map_dirty[row] |= mask;
+    }
+}
+
+static int world_clip(int x, int y, int width, int height, unsigned *part)
+{
+    if (ui.mode != MODAL) {
+        if ((*part)++) {
+            return 0;
+        }
+        return 1;
+    }
+
+    int right = x + width;
+    int bottom = y + height;
+    if (x >= 14 && y >= 22 && bottom <= 202) {
+        return 0;
+    }
+
+    // The opaque modal leaves these map bands and its rounded corner pixels exposed.
+    static const struct dwindow exposed[] = {
+        {0, 0, 326, 22}, {0, 202, 326, 205}, {0, 22, 12, 202},
+        {12, 22, 14, 23}, {12, 23, 13, 24}, {12, 200, 13, 201}, {12, 201, 14, 202}
+    };
+
+    while (*part < sizeof exposed / sizeof exposed[0]) {
+        struct dwindow area = exposed[(*part)++];
+        if (x < area.right && right > area.left && y < area.bottom && bottom > area.top) {
+            dwindow_set(area);
+            return 1;
+        }
+    }
+    return 0;
+}
+
 static void monkey(int type, int x, int y, const bopti_image_t *img)
 {
-    dsubimage(6 + x - 8, 4 + y - 8, img, type % 2 * 16, type / 2 * 16, 16, 16, DIMAGE_NONE);
+    unsigned part = 0;
+    while (world_clip(6 + x - 8, 4 + y - 8, 16, 16, &part)) {
+        dsubimage(6 + x - 8, 4 + y - 8, img, type % 2 * 16, type / 2 * 16, 16, 16, DIMAGE_NONE);
+    }
+    map_mark(6 + x - 8, 4 + y - 8, 16, 16);
 }
 
 static int next_tower(int from, int step)
@@ -108,6 +192,43 @@ static void fill(int x, int y, int width, int height, int color)
         }
         while (count--) {
             *p++ = pair;
+        }
+    }
+}
+
+static void restore_map(void)
+{
+    // Restore the previous frame's occupied tiles, merging adjacent tiles into one blit.
+    for (int row = 0; row < 13; row++) {
+        uint32_t mask = map_dirty[row];
+        map_dirty[row] = 0;
+        int y = row * 16;
+        int bottom = y + 16 < 205 ? y + 16 : 205;
+
+        while (mask) {
+            int first = __builtin_ctz(mask);
+            int last = first + 1;
+            while (last < 21 && (mask & (1u << last))) {
+                last++;
+            }
+            mask &= ~(((1u << last) - 1) & ~((1u << first) - 1));
+
+            int x = first * 16;
+            int right = last * 16 < 326 ? last * 16 : 326;
+            if (y < 4) {
+                fill(x, y, right - x, 4 - y, C_BLACK);
+            }
+            if (x < 6) {
+                fill(x, y, 6 - x, bottom - y, C_BLACK);
+            }
+
+            int left = x < 6 ? 6 : x;
+            int top = y < 4 ? 4 : y;
+            unsigned part = 0;
+            while (world_clip(left, top, right - left, bottom - top, &part)) {
+                dsubimage(left, top, &img_meadow, left - 6, top - 4, right - left, bottom - top,
+                          DIMAGE_NONE);
+            }
         }
     }
 }
@@ -424,10 +545,107 @@ static void modal(void)
     modal_action(254, 121, SELL, "SELL", text, ORANGE, ORANGE_EDGE);
 }
 
+static void modal_update(int refresh)
+{
+    const Tower *t = &game.towers[ui.tower];
+    unsigned affordable = 0;
+
+    for (int path = 0; path < 3; path++) {
+        const Upgrade *next = tower_next_upgrade(t, path);
+        if (next && game.cash >= next->price * 100u) {
+            affordable |= 1u << path;
+        }
+    }
+
+    if (refresh || !modal_cache.valid || modal_cache.tower != ui.tower ||
+        modal_cache.type != t->type || modal_cache.profile != t->profile ||
+        modal_cache.row != ui.row || modal_cache.spent != t->spent ||
+        modal_cache.affordable != affordable) {
+        modal();
+    } else if (modal_cache.pops != t->pops) {
+        char text[32];
+        struct dwindow window = dwindow_set((struct dwindow){266, 27, 358, 39});
+        fill(266, 27, 92, 12, TAN);
+        label(22, 27, 270, C_WHITE, tower_defs[t->type]->name, DTEXT_LEFT, 1);
+        snprintf(text, sizeof text, "Pops %lu", (unsigned long)t->pops);
+        label(357, 27, 92, C_WHITE, text, DTEXT_RIGHT, 0);
+        dwindow_set(window);
+    }
+
+    modal_cache.valid = 1;
+    modal_cache.tower = ui.tower;
+    modal_cache.type = t->type;
+    modal_cache.profile = t->profile;
+    modal_cache.row = ui.row;
+    modal_cache.pops = t->pops;
+    modal_cache.spent = t->spent;
+    modal_cache.affordable = affordable;
+}
+
+static uint32_t selector_state(void)
+{
+    uint32_t key = ui.selected | ((unsigned)ui.first_row << 5);
+
+    for (int n = 0; n < 12; n++) {
+        unsigned price = tower_defs[ui.first_row * 2 + n]->price;
+        if (game.cash >= price * 100u) {
+            key |= 1u << (8 + n);
+        }
+    }
+
+    return key;
+}
+
+static uint32_t footer_state(void)
+{
+    uint32_t key = ui.mode | ((unsigned)ui.row << 2) | ((unsigned)game.speed << 5) |
+                   ((unsigned)game.running << 7) | ((unsigned)game.won << 8) |
+                   ((unsigned)game.lost << 9) | ((unsigned)game.pool_full << 10) |
+                   ((game.tower_count != 0) << 11);
+
+    if (ui.mode == PLACE) {
+        key |= can_place_monkey(ui.selected, ui.x, ui.y, -1) << 12;
+        key |= (game.cash >= tower_defs[ui.selected]->price * 100u) << 13;
+    }
+
+    if (ui.mode == MODAL) {
+        const Tower *t = &game.towers[ui.tower];
+        key |= modal_row_visible(t, COLLECT) << 17;
+
+        if (ui.row < 3) {
+            const Upgrade *next = tower_next_upgrade(t, ui.row);
+            key |= (next != NULL) << 14;
+            key |= game_upgrade_allowed(ui.tower, ui.row) << 15;
+            key |= (next && game.cash >= next->price * 100u) << 16;
+        }
+    }
+
+    return key;
+}
+
 void ui_draw(void)
 {
-    dclear(C_BLACK);
-    dimage(6, 4, &img_meadow);
+    if (render_vram != gint_vram) {
+        render_vram = gint_vram;
+        selector_key = footer_key = UINT32_MAX;
+        modal_cache.valid = 0;
+        dclear(C_BLACK);
+        map_mark(0, 0, 326, 205);
+    }
+
+    if (previous_mode == MODAL && ui.mode != MODAL) {
+        map_mark(12, 22, 372, 180);
+        modal_cache.valid = 0;
+    }
+
+    unsigned cash = game.cash / 100;
+    if (cash != hud_cash || game.lives != hud_lives || game.round != hud_round) {
+        map_mark(8, 0, 305, 20);
+    }
+    int redraw_hud = (map_dirty[0] | map_dirty[1]) & 0xfffffu;
+
+    struct dwindow window = dwindow_set((struct dwindow){0, 0, 326, 205});
+    restore_map();
 
     unsigned seen = 0;
 
@@ -439,7 +657,11 @@ void ui_draw(void)
         seen++;
         int x = 6 + screen_x(drop->x);
         int y = 4 + screen_y(drop->y);
-        drect(x - 1, y - 1, x + 1, y + 1, 0xffe0);
+        unsigned part = 0;
+        while (world_clip(x - 1, y - 1, 3, 3, &part)) {
+            drect(x - 1, y - 1, x + 1, y + 1, 0xffe0);
+        }
+        map_mark(x - 1, y - 1, 3, 3);
     }
 
     seen = 0;
@@ -455,35 +677,37 @@ void ui_draw(void)
         }
         int x = 6 + screen_x(s->x);
         int y = 4 + screen_y(s->y);
-        drect_border(x - 3, y - 3, x + 3, y + 3, 0x4b44, 1, C_WHITE);
+        unsigned part = 0;
+        while (world_clip(x - 3, y - 3, 7, 7, &part)) {
+            drect_border(x - 3, y - 3, x + 3, y + 3, 0x4b44, 1, C_WHITE);
+        }
+        map_mark(x - 3, y - 3, 7, 7);
     }
 
-    seen = 0;
-
-    for (int i = 0; i < BLOON_LIMIT && seen < game.bloon_count; i++) {
+    for (unsigned i = bloon_next(0); i < BLOON_LIMIT; i = bloon_next(i + 1)) {
         Bloon *b = &game.bloons[i];
-        if (!b->active) {
-            continue;
-        }
-        seen++;
         int x = 6 + screen_x(b->x);
         int y = 4 + screen_y(b->y);
         if (x < 0 || x > 325 || y < 0 || y > DHEIGHT) {
             continue;
         }
-        dsubimage(x - 12, y - 12, &img_bloons, b->type * 24, 0, 24, 24, DIMAGE_NONE);
-        if (b->flags & FORTIFIED) {
-            drect_border(x - 4, y - 5, x + 4, y + 5, C_NONE, 1, 0x8c41);
-        }
-        if (b->flags & CAMO) {
-            dpixel(x - 2, y, 0x2445);
-            dpixel(x + 2, y - 2, 0x2445);
-        }
-        if (b->glue) {
-            dpixel(x, y, 0xff80);
-        }
-        if (b->freeze) {
-            drect_border(x - 3, y - 4, x + 3, y + 4, C_NONE, 1, 0x7fff);
+        map_mark(x - 12, y - 12, 24, 24);
+        unsigned part = 0;
+        while (world_clip(x - 12, y - 12, 24, 24, &part)) {
+            dsubimage(x - 12, y - 12, &img_bloons, b->type * 24, 0, 24, 24, DIMAGE_NONE);
+            if (b->flags & FORTIFIED) {
+                drect_border(x - 4, y - 5, x + 4, y + 5, C_NONE, 1, 0x8c41);
+            }
+            if (b->flags & CAMO) {
+                dpixel(x - 2, y, 0x2445);
+                dpixel(x + 2, y - 2, 0x2445);
+            }
+            if (b->glue) {
+                dpixel(x, y, 0xff80);
+            }
+            if (b->freeze) {
+                drect_border(x - 3, y - 4, x + 3, y + 4, C_NONE, 1, 0x7fff);
+            }
         }
     }
 
@@ -495,9 +719,18 @@ void ui_draw(void)
             continue;
         }
         if (s->attack->flags & A_TRAP) {
-            drect_border(x - 4, y - 3, x + 4, y + 3, s->trap_full ? 0xffe0 : 0x83a5, 1, C_WHITE);
+            unsigned part = 0;
+            while (world_clip(x - 4, y - 3, 9, 7, &part)) {
+                drect_border(x - 4, y - 3, x + 4, y + 3, s->trap_full ? 0xffe0 : 0x83a5,
+                             1, C_WHITE);
+            }
+            map_mark(x - 4, y - 3, 9, 7);
         } else {
-            dpixel(x, y, (s->attack->flags & A_SPIKE) ? C_WHITE : 0xffc0);
+            unsigned part = 0;
+            while (world_clip(x, y, 1, 1, &part)) {
+                dpixel(x, y, (s->attack->flags & A_SPIKE) ? C_WHITE : 0xffc0);
+            }
+            map_mark(x, y, 1, 1);
         }
     }
 
@@ -528,15 +761,36 @@ void ui_draw(void)
         int x = 6 + screen_x(t->x);
         int y = 4 + screen_y(t->y);
         drect_border(x - 9, y - 9, x + 8, y + 8, C_NONE, 1, C_WHITE);
+        map_mark(x - 9, y - 9, 18, 18);
     }
 
-    selector();
-    hud();
+    dwindow_set(window);
+    uint32_t next_selector = selector_state();
+    int redraw_selector = next_selector != selector_key ||
+                          (previous_mode == MODAL && ui.mode != MODAL);
+    if (redraw_selector) {
+        selector();
+        selector_key = next_selector;
+    }
+
+    if (redraw_hud || ((map_dirty[0] | map_dirty[1]) & 0xfffffu)) {
+        hud();
+    }
+    hud_cash = cash;
+    hud_lives = game.lives;
+    hud_round = game.round;
 
     if (ui.mode == MODAL) {
-        modal();
+        modal_update(redraw_selector);
     }
-    footer();
+
+    uint32_t next_footer = footer_state();
+    if (next_footer != footer_key) {
+        footer();
+        footer_key = next_footer;
+    }
+
+    previous_mode = ui.mode;
     dupdate();
 }
 

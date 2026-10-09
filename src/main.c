@@ -31,7 +31,12 @@ int main(void)
 
     while (active) {
         unsigned now = ticks;
-        while (processed < now) {
+        unsigned pending = now - processed;
+        if (pending > 2) {
+            pending = 2;
+        }
+        // Keep every simulation tick, but let input and drawing run during catch-up.
+        while (pending--) {
             for (unsigned speed = 0; speed < game.speed; speed++) {
                 game_tick();
             }

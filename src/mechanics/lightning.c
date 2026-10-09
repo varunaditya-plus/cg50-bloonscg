@@ -5,7 +5,7 @@ static int closest(const Shot *s, int32_t x, int32_t y)
     const AttackDef *a = s->attack;
     int target = -1;
     int32_t best = INT32_MAX;
-    for (unsigned n = 0; n < BLOON_LIMIT; n++) {
+    for (int n = bloon_next(0); n >= 0; n = bloon_next(n + 1)) {
         if (!combat_eligible(s->owner, a, n) || shot_history_contains(s, n))
             continue;
         int32_t d = distance_squared(x, y, game.bloons[n].x, game.bloons[n].y);

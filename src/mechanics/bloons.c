@@ -1,4 +1,5 @@
 #include "game.h"
+#include <stdlib.h>
 #include <string.h>
 
 // https://github.com/KyleDerZweite/btd6-atlas/tree/ded3155921d70cd83d803b4d70022000e4c37c6b
@@ -6,8 +7,23 @@
 #define GROW_FORTIFIED 128u
 #define CASCADE_STATUS (1u << 31)
 static uint16_t allocation_hint, reserved_children;
-static uint16_t tick_generation[BLOON_LIMIT];
+static unsigned cached_path_segment;
+static uint32_t active_words[(BLOON_LIMIT + 31) / 32];
+static struct {
+    uint16_t id, generation;
+} tick_bloons[BLOON_LIMIT];
+static const uint8_t lowest_bit[32] = {0, 1, 28, 2, 29, 14, 24, 3, 30, 22, 20, 15, 25, 17, 4, 8, 31, 27, 13, 23, 21, 19, 16, 7, 26, 12, 18, 6, 11, 5, 10, 9};
 static const uint8_t layer_number[BLOON_TYPES] = {1, 2, 3, 4, 5, 6, 6, 6, 7, 7, 8, 9, 10, 11};
+
+static int32_t path_offset(int32_t numerator, const PathPoint *point, uint32_t span)
+{
+    uint32_t magnitude = numerator < 0 ? -(uint32_t)numerator : (uint32_t)numerator;
+    uint32_t quotient = (uint64_t)magnitude * point->reciprocal >> 32;
+    // A rounded-up reciprocal can overshoot the exact truncated quotient by one.
+    if ((uint64_t)quotient * span > magnitude)
+        quotient--;
+    return numerator < 0 ? -(int32_t)quotient : (int32_t)quotient;
+}
 
 void path_position(int32_t distance, int32_t *x, int32_t *y)
 {
@@ -23,19 +39,24 @@ void path_position(int32_t distance, int32_t *x, int32_t *y)
         *y = meadow_path[last].y;
         return;
     }
-    unsigned lo = 0, hi = last;
-
-    while (hi - lo > 1) {
-        unsigned mid = (lo + hi) / 2;
-        if (meadow_path[mid].distance <= (uint32_t)distance)
-            lo = mid;
-        else
-            hi = mid;
+    unsigned lo = cached_path_segment;
+    if ((uint32_t)distance < meadow_path[lo].distance ||
+        (uint32_t)distance >= meadow_path[lo + 1].distance) {
+        unsigned hi = last;
+        lo = 0;
+        while (hi - lo > 1) {
+            unsigned mid = (lo + hi) / 2;
+            if (meadow_path[mid].distance <= (uint32_t)distance)
+                lo = mid;
+            else
+                hi = mid;
+        }
+        cached_path_segment = lo;
     }
-    const PathPoint *a = &meadow_path[lo], *b = &meadow_path[hi];
+    const PathPoint *a = &meadow_path[lo], *b = &meadow_path[lo + 1];
     int32_t offset = distance - a->distance, span = b->distance - a->distance;
-    *x = a->x + (b->x - a->x) * offset / span;
-    *y = a->y + (b->y - a->y) * offset / span;
+    *x = a->x + path_offset((b->x - a->x) * offset, a, span);
+    *y = a->y + path_offset((b->y - a->y) * offset, a, span);
 }
 
 static uint32_t countdown(uint32_t timer)
@@ -43,8 +64,39 @@ static uint32_t countdown(uint32_t timer)
     return timer > TICK ? timer - TICK : 0;
 }
 
-static void remove_bloon(Bloon *b)
+int bloon_next(unsigned start)
 {
+    unsigned word = start / 32;
+    if (word >= sizeof active_words / sizeof *active_words)
+        return -1;
+    uint32_t bits = active_words[word] & (UINT32_MAX << (start % 32));
+
+    while (!bits) {
+        if (++word >= sizeof active_words / sizeof *active_words)
+            return -1;
+        bits = active_words[word];
+    }
+    // Multiplying the isolated lowest bit gives a unique five-bit table index.
+    unsigned index = ((bits & -bits) * 0x077cb531u) >> 27;
+    return word * 32 + lowest_bit[index];
+}
+
+void bloons_reset_cache(void)
+{
+    memset(active_words, 0, sizeof active_words);
+    unsigned seen = 0;
+    for (unsigned i = 0; i < BLOON_LIMIT && seen < game.bloon_count; i++) {
+        if (game.bloons[i].active) {
+            active_words[i / 32] |= 1u << (i % 32);
+            seen++;
+        }
+    }
+}
+
+void bloon_remove(Bloon *b)
+{
+    unsigned id = b - game.bloons;
+    active_words[id / 32] &= ~(1u << (id % 32));
     b->active = 0;
     if (game.bloon_count)
         game.bloon_count--;
@@ -78,6 +130,7 @@ int bloon_spawn(unsigned type, unsigned flags, int32_t distance, unsigned max_re
         memset(b, 0, sizeof *b);
         b->generation = generation;
         b->active = 1;
+        active_words[id / 32] |= 1u << (id % 32);
         b->type = type;
         if (type >= MOAB)
             flags &= ~REGROW;
@@ -264,18 +317,53 @@ static void inherit(Bloon *child, const Bloon *parent, unsigned branch, uint32_t
     child->ancestors[child->ancestor_count++] = parent_token;
 }
 
-int bloon_damage(unsigned id, unsigned damage, unsigned immunity, unsigned owner)
+typedef struct DamageFrame {
+    struct DamageFrame *previous;
+    Bloon parent;
+    CombatPop *pop;
+    uint32_t parent_token;
+    unsigned id, immunity, owner, credit, excess, children;
+    unsigned group, child, branch;
+    uint8_t spawning, add_credit, pooled;
+} DamageFrame;
+
+static DamageFrame damage_frames[16];
+static unsigned damage_depth;
+
+static DamageFrame *damage_acquire(void)
 {
+    DamageFrame *frame = damage_depth < 16 ? &damage_frames[damage_depth]
+                                           : malloc(sizeof *frame);
+    if (!frame) {
+        game.pool_full = 1;
+        return NULL;
+    }
+    frame->pooled = damage_depth < 16;
+    damage_depth++;
+    return frame;
+}
+
+static void damage_release(DamageFrame *frame)
+{
+    damage_depth--;
+    if (!frame->pooled)
+        free(frame);
+}
+
+static DamageFrame *damage_begin(unsigned id, unsigned damage, unsigned immunity, unsigned owner,
+                                  unsigned *result)
+{
+    *result = 0;
     if (id >= BLOON_LIMIT || !damage)
-        return 0;
+        return NULL;
     Bloon *b = &game.bloons[id];
     if (!b->active)
-        return 0;
+        return NULL;
     const BloonDef *def = &bloon_defs[b->type];
     unsigned properties = (def->immunity | (b->freeze ? IMM_FROZEN : 0)) & ~b->property_strip;
 
     if (properties & immunity)
-        return 0;
+        return NULL;
     unsigned removed = damage < b->hp ? damage : b->hp;
     unsigned payable = !b->cash_disabled && !(b->regrow_paid_layers & (1u << b->type));
     unsigned credit = payable ? removed : 0;
@@ -284,7 +372,8 @@ int bloon_damage(unsigned id, unsigned damage, unsigned immunity, unsigned owner
         b->hp -= damage;
         if (owner < TOWER_LIMIT)
             game.towers[owner].pops += credit;
-        return credit;
+        *result = credit;
+        return NULL;
     }
     unsigned children = def->count[0] + def->count[1];
 
@@ -295,37 +384,108 @@ int bloon_damage(unsigned id, unsigned damage, unsigned immunity, unsigned owner
         b->hp -= removed;
         if (owner < TOWER_LIMIT)
             game.towers[owner].pops += credit;
-        return credit;
+        *result = credit;
+        return NULL;
     }
-    Bloon parent = *b;
-    uint32_t parent_token = ((uint32_t)parent.generation << 16) | id;
-    remove_bloon(b);
 
+    DamageFrame *frame = NULL;
+    if (children || b->pop_attack) {
+        frame = damage_acquire();
+        if (!frame)
+            return NULL;
+        frame->previous = NULL;
+        frame->parent = *b;
+        frame->parent_token = ((uint32_t)b->generation << 16) | id;
+        frame->id = id;
+        frame->immunity = immunity;
+        frame->owner = owner;
+        frame->credit = credit;
+        frame->excess = b->type < MOAB ? damage - removed : 0;
+        frame->children = children;
+        frame->group = frame->child = frame->branch = 0;
+        frame->spawning = frame->add_credit = 0;
+    }
+
+    bloon_remove(b);
     if (payable)
         game.cash += game.round <= 50 ? 100 : 50;
-
     if (owner < TOWER_LIMIT)
         game.towers[owner].pops += credit;
-    reserved_children += children;
-    combat_bloon_pop(&parent);
-    reserved_children -= children;
-    allocation_hint = id;
-    unsigned excess = parent.type < MOAB ? damage - removed : 0;
-    unsigned branch = 0;
 
-    for (unsigned k = 0; k < 2; k++)
-        for (unsigned j = 0; j < def->count[k]; j++, branch++) {
-            unsigned type = def->child[k];
-            int child_id = bloon_spawn(type, child_flags(&parent, type), parent.distance,
-                                       parent.regrow_max & ~GROW_FORTIFIED);
+    if (frame) {
+        reserved_children += children;
+        frame->pop = combat_pop_begin(&frame->parent);
+    } else {
+        allocation_hint = id;
+        *result = credit;
+    }
+    return frame;
+}
+
+int bloon_damage(unsigned id, unsigned damage, unsigned immunity, unsigned owner)
+{
+    unsigned credit;
+    DamageFrame *frame = damage_begin(id, damage, immunity, owner, &credit);
+    if (!frame)
+        return credit;
+
+    // A LIFO continuation finishes each pop blast and descendant before its next sibling.
+    for (;;) {
+        if (!frame->spawning) {
+            unsigned enemy, amount, mask;
+            if (frame->pop && combat_pop_next(frame->pop, &enemy, &amount, &mask)) {
+                DamageFrame *next = damage_begin(enemy, amount, mask, frame->parent.pop_source,
+                                                   &credit);
+                if (next) {
+                    next->previous = frame;
+                    frame = next;
+                }
+                continue;
+            }
+            combat_pop_finish(frame->pop);
+            frame->pop = NULL;
+            reserved_children -= frame->children;
+            allocation_hint = frame->id;
+            frame->spawning = 1;
+        }
+
+        const BloonDef *def = &bloon_defs[frame->parent.type];
+        while (frame->group < 2 && frame->child >= def->count[frame->group]) {
+            frame->group++;
+            frame->child = 0;
+        }
+        if (frame->group < 2) {
+            unsigned type = def->child[frame->group];
+            unsigned branch = frame->branch++;
+            frame->child++;
+            int child_id = bloon_spawn(type, child_flags(&frame->parent, type),
+                                       frame->parent.distance,
+                                       frame->parent.regrow_max & ~GROW_FORTIFIED);
             if (child_id < 0)
                 continue;
-            Bloon *child = &game.bloons[child_id];
-            inherit(child, &parent, branch, parent_token);
-            if (excess)
-                credit += bloon_damage(child_id, excess, immunity, owner);
+            inherit(&game.bloons[child_id], &frame->parent, branch, frame->parent_token);
+            if (frame->excess) {
+                DamageFrame *next = damage_begin(child_id, frame->excess, frame->immunity,
+                                                   frame->owner, &credit);
+                if (next) {
+                    next->previous = frame;
+                    next->add_credit = 1;
+                    frame = next;
+                } else
+                    frame->credit += credit;
+            }
+            continue;
         }
-    return credit;
+
+        DamageFrame *previous = frame->previous;
+        unsigned result = frame->credit, add = frame->add_credit;
+        damage_release(frame);
+        if (!previous)
+            return result;
+        frame = previous;
+        if (add)
+            frame->credit += result;
+    }
 }
 
 static int has_effect(const AttackDef *a, unsigned kind)
@@ -608,11 +768,16 @@ static void regrow(Bloon *b)
 
 void bloons_tick(void)
 {
-    for (unsigned i = 0; i < BLOON_LIMIT; i++)
-        tick_generation[i] = game.bloons[i].active ? game.bloons[i].generation : 0;
-    for (unsigned i = 0; i < BLOON_LIMIT; i++) {
+    unsigned count = 0;
+    // Snapshot generations so split children wait until the next movement tick.
+    for (int i = bloon_next(0); i >= 0; i = bloon_next(i + 1)) {
+        tick_bloons[count].id = i;
+        tick_bloons[count++].generation = game.bloons[i].generation;
+    }
+    for (unsigned n = 0; n < count; n++) {
+        unsigned i = tick_bloons[n].id;
         Bloon *b = &game.bloons[i];
-        if (!b->active || b->generation != tick_generation[i])
+        if (!b->active || b->generation != tick_bloons[n].generation)
             continue;
         unsigned frozen = b->freeze != 0, stunned = b->stun != 0, knocked = b->knockback != 0;
         b->knockback = countdown(b->knockback);
@@ -696,7 +861,7 @@ void bloons_tick(void)
             unsigned leak =
                 (b->flags & FORTIFIED) ? bloon_defs[b->type].fort_leak : bloon_defs[b->type].leak;
             game.lives = game.lives > leak ? game.lives - leak : 0;
-            remove_bloon(b);
+            bloon_remove(b);
             if (!game.lives) {
                 game.lost = 1;
                 game.running = 0;
