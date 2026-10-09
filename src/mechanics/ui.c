@@ -534,16 +534,26 @@ static void modal(void)
             : purchasable  ? GREEN_EDGE
                            : DISABLED_EDGE,
             ui.row == path ? 2 : 1);
-        for (int level = 0; level < definition->caps[path]; level++) {
-            drect_border(86, y + 3 + level * 8, 91, y + 8 + level * 8, level < tier ? LIME : TAN,
-                         1, BROWN);
+        int progress = tier * 66 / definition->caps[path];
+        for (int mark = 0; mark < 3; mark++) {
+            int x = 86 + mark * 27;
+            int filled = progress - mark * 22;
+            if (filled > 22) {
+                filled = 22;
+            }
+            drect_border(x, y + 3, x + 23, y + 6, TAN, 1, BROWN);
+            if (filled > 0) {
+                fill(x + 1, y + 4, filled, 2, LIME);
+            }
         }
 
-        wrapped(97, y + 3, 66, CREAM, owned ? owned->name : "Not upgraded");
         if (owned) {
-            dsubimage(98, y + 23, &img_upgrade_icons, owned->icon % 14 * 16, owned->icon / 14 * 16,
+            wrapped(105, y + 8, 59, CREAM, owned->name);
+            dsubimage(86, y + 21, &img_upgrade_icons, owned->icon % 14 * 16, owned->icon / 14 * 16,
                       16, 16, DIMAGE_NONE);
-            label(120, y + 28, 43, LIME, "OWNED", DTEXT_LEFT, 0);
+            label(105, y + 29, 59, LIME, "OWNED", DTEXT_LEFT, 0);
+        } else {
+            wrapped(90, y + 14, 70, CREAM, "Not upgraded");
         }
 
         if (next) {
