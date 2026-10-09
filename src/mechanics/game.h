@@ -495,4 +495,5 @@ unsigned trap_collect(int32_t x, int32_t y);
 void ui_init(void);
 void ui_draw(void);
 int ui_key(int key);
+int ui_paused(void);
 #endif

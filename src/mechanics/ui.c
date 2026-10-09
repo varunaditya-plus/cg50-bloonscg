@@ -35,6 +35,7 @@ static uint16_t *render_vram;
 static uint32_t selector_key, footer_key;
 static unsigned hud_cash, hud_lives, hud_round;
 static int previous_mode;
+static int exit_confirmation;
 static struct {
     int valid, tower, type, profile, row;
     uint32_t pops, spent;
@@ -68,6 +69,7 @@ void ui_init(void)
     selector_key = footer_key = UINT32_MAX;
     hud_cash = hud_lives = hud_round = UINT32_MAX;
     previous_mode = SELECT;
+    exit_confirmation = 0;
     modal_cache.valid = 0;
     red_sprites = img_monkey_sprites;
     red_sprites.palette = red_palette;
@@ -804,6 +806,14 @@ void ui_draw(void)
     }
 
     previous_mode = ui.mode;
+    if (exit_confirmation) {
+        box(60, 61, 276, 102, TAN, BROWN, 2);
+        label(198, 73, 254, C_WHITE, "Exit to menu?", DTEXT_CENTER, 1);
+        label(198, 96, 254, BROWN, "Are you absolutely sure you wanna go?", DTEXT_CENTER, 0);
+        box(111, 114, 174, 25, ORANGE, ORANGE_EDGE, 1);
+        label(198, 120, 160, C_WHITE, "F1: EXIT BLOONS CG", DTEXT_CENTER, 0);
+        label(198, 145, 254, BROWN, "Click any other key to go back to the game", DTEXT_CENTER, 0);
+    }
     dupdate();
 }
 
@@ -825,10 +835,22 @@ static void modal_activate(void)
     }
 }
 
+int ui_paused(void)
+{
+    return exit_confirmation;
+}
+
 int ui_key(int key)
 {
+    if (exit_confirmation) {
+        exit_confirmation = 0;
+        render_vram = NULL;
+        return key != KEY_F1;
+    }
+
     if (key == KEY_MENU) {
-        return 0;
+        exit_confirmation = 1;
+        return 1;
     }
 
     if (ui.mode == MODAL) {

@@ -32,6 +32,11 @@ int main(void)
     while (active) {
         unsigned now = ticks;
         unsigned pending = now - processed;
+        if (ui_paused()) {
+            // Discard paused ticks so closing the prompt cannot fast-forward the game.
+            processed = now;
+            pending = 0;
+        }
         if (pending > 2) {
             pending = 2;
         }
