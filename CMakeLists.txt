@@ -49,6 +49,7 @@ add_executable(bloonscg
   src/monkeys/druid.c
   src/monkeys/banana_farm.c
   src/monkeys/spike_factory.c
+  src/monkeys/monkey_village.c
   ${ASSETS}
 )
 target_compile_options(bloonscg PRIVATE -Wall -Wextra -Os)
