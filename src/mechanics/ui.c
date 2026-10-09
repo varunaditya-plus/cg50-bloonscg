@@ -378,6 +378,9 @@ static void hud(void)
     snprintf(text, sizeof text, game.round > 60 ? "%lu" : "%lu/60", (unsigned long)game.round);
     int width;
     dsize(text, &font_game_title, &width, NULL);
+    if (width > 75) {
+        dsize(text, &font_game_ui, &width, NULL);
+    }
     label(306 - width, 6, 34, CREAM, "ROUND", DTEXT_RIGHT, 0);
     label(312, 1, 75, C_WHITE, text, DTEXT_RIGHT, 1);
 }
