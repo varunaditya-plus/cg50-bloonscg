@@ -11,6 +11,8 @@ extern const font_t font_game_ui, font_game_title;
 
 enum { SELECT, PLACE, PICK, MODAL };
 enum { COLLECT = 3, SELL };
+enum { MODAL_X = 8, MODAL_Y = 22, MODAL_WIDTH = 308, MODAL_HEIGHT = 180 };
+enum { MODAL_RIGHT = MODAL_X + MODAL_WIDTH, MODAL_BOTTOM = MODAL_Y + MODAL_HEIGHT };
 
 typedef struct {
     int mode;
@@ -82,7 +84,8 @@ static void map_mark(int x, int y, int width, int height)
     if (right < 0 || bottom < 0 || x >= 326 || y >= 205) {
         return;
     }
-    if (ui.mode == MODAL && x >= 14 && y >= 22 && bottom < 202) {
+    if (ui.mode == MODAL && x >= MODAL_X + 2 && right < MODAL_RIGHT - 2 &&
+        y >= MODAL_Y && bottom < MODAL_BOTTOM) {
         return;
     }
 
@@ -119,14 +122,24 @@ static int world_clip(int x, int y, int width, int height, unsigned *part)
 
     int right = x + width;
     int bottom = y + height;
-    if (x >= 14 && y >= 22 && bottom <= 202) {
+    if (x >= MODAL_X + 2 && right <= MODAL_RIGHT - 2 && y >= MODAL_Y &&
+        bottom <= MODAL_BOTTOM) {
         return 0;
     }
 
     // The opaque modal leaves these map bands and its rounded corner pixels exposed.
     static const struct dwindow exposed[] = {
-        {0, 0, 326, 22}, {0, 202, 326, 205}, {0, 22, 12, 202},
-        {12, 22, 14, 23}, {12, 23, 13, 24}, {12, 200, 13, 201}, {12, 201, 14, 202}
+        {0, 0, 326, MODAL_Y}, {0, MODAL_BOTTOM, 326, 205},
+        {0, MODAL_Y, MODAL_X, MODAL_BOTTOM},
+        {MODAL_RIGHT, MODAL_Y, 326, MODAL_BOTTOM},
+        {MODAL_X, MODAL_Y, MODAL_X + 2, MODAL_Y + 1},
+        {MODAL_X, MODAL_Y + 1, MODAL_X + 1, MODAL_Y + 2},
+        {MODAL_X, MODAL_BOTTOM - 2, MODAL_X + 1, MODAL_BOTTOM - 1},
+        {MODAL_X, MODAL_BOTTOM - 1, MODAL_X + 2, MODAL_BOTTOM},
+        {MODAL_RIGHT - 2, MODAL_Y, MODAL_RIGHT, MODAL_Y + 1},
+        {MODAL_RIGHT - 1, MODAL_Y + 1, MODAL_RIGHT, MODAL_Y + 2},
+        {MODAL_RIGHT - 1, MODAL_BOTTOM - 2, MODAL_RIGHT, MODAL_BOTTOM - 1},
+        {MODAL_RIGHT - 2, MODAL_BOTTOM - 1, MODAL_RIGHT, MODAL_BOTTOM}
     };
 
     while (*part < sizeof exposed / sizeof exposed[0]) {
@@ -487,19 +500,19 @@ static void modal(void)
     const TowerDef *definition = tower_defs[t->type];
     char text[80];
 
-    box(12, 22, 372, 180, TAN, BROWN, 2);
-    label(22, 27, 270, C_WHITE, definition->name, DTEXT_LEFT, 1);
+    box(MODAL_X, MODAL_Y, MODAL_WIDTH, MODAL_HEIGHT, TAN, BROWN, 2);
+    label(18, 27, 185, C_WHITE, definition->name, DTEXT_LEFT, 1);
     snprintf(text, sizeof text, "Pops %lu", (unsigned long)t->pops);
-    label(357, 27, 92, C_WHITE, text, DTEXT_RIGHT, 0);
-    dline(369, 27, 376, 34, BROWN);
-    dline(376, 27, 369, 34, BROWN);
+    label(296, 27, 92, C_WHITE, text, DTEXT_RIGHT, 0);
+    dline(301, 27, 308, 34, BROWN);
+    dline(308, 27, 301, 34, BROWN);
 
-    box(22, 44, 85, 100, SKY, BLUE_EDGE, 1);
+    box(16, 44, 60, 100, SKY, BLUE_EDGE, 1);
 
     for (int y = 46; y < 142; y += 8) {
-        fill(24, y, 81, 8, SKY - ((y - 46) / 8 << 5));
+        fill(18, y, 56, 8, SKY - ((y - 46) / 8 << 5));
     }
-    portrait(t->type, 40, 69);
+    portrait(t->type, 22, 69);
 
     int visible = 0;
 
@@ -515,47 +528,47 @@ static void modal(void)
         int affordable = next && game.cash >= next->price * 100u;
         int purchasable = next && allowed && affordable;
 
-        box(116, y, 113, 41, WOOD, BROWN, 1);
-        box(230, y, 145, 41, purchasable ? GREEN_UI : DISABLED,
+        box(82, y, 86, 41, WOOD, BROWN, 1);
+        box(170, y, 136, 41, purchasable ? GREEN_UI : DISABLED,
             ui.row == path ? C_WHITE
             : purchasable  ? GREEN_EDGE
                            : DISABLED_EDGE,
             ui.row == path ? 2 : 1);
         for (int level = 0; level < definition->caps[path]; level++) {
-            drect_border(120, y + 3 + level * 8, 125, y + 8 + level * 8, level < tier ? LIME : TAN,
+            drect_border(86, y + 3 + level * 8, 91, y + 8 + level * 8, level < tier ? LIME : TAN,
                          1, BROWN);
         }
 
-        wrapped(131, y + 3, 93, CREAM, owned ? owned->name : "Not upgraded");
+        wrapped(97, y + 3, 66, CREAM, owned ? owned->name : "Not upgraded");
         if (owned) {
-            dsubimage(132, y + 23, &img_upgrade_icons, owned->icon % 14 * 16, owned->icon / 14 * 16,
+            dsubimage(98, y + 23, &img_upgrade_icons, owned->icon % 14 * 16, owned->icon / 14 * 16,
                       16, 16, DIMAGE_NONE);
-            label(154, y + 28, 69, LIME, "OWNED", DTEXT_LEFT, 0);
+            label(120, y + 28, 43, LIME, "OWNED", DTEXT_LEFT, 0);
         }
 
         if (next) {
-            wrapped(237, y + 3, 131, C_WHITE, next->name);
-            dsubimage(238, y + 23, &img_upgrade_icons, next->icon % 14 * 16, next->icon / 14 * 16,
+            wrapped(177, y + 3, 124, C_WHITE, next->name);
+            dsubimage(178, y + 23, &img_upgrade_icons, next->icon % 14 * 16, next->icon / 14 * 16,
                       16, 16, DIMAGE_NONE);
             if (allowed) {
                 snprintf(text, sizeof text, "$%u", next->price);
             } else {
                 snprintf(text, sizeof text, "LOCKED");
             }
-            label(261, y + 22, 107, allowed && !affordable ? RED_UI : C_WHITE, text, DTEXT_LEFT,
+            label(201, y + 22, 99, allowed && !affordable ? RED_UI : C_WHITE, text, DTEXT_LEFT,
                   allowed);
         } else {
-            label(302, y + 15, 135, C_WHITE, "MAX UPGRADES", DTEXT_CENTER, 0);
+            label(238, y + 15, 128, C_WHITE, "MAX UPGRADES", DTEXT_CENTER, 0);
         }
     }
 
     if (modal_row_visible(t, COLLECT)) {
-        modal_action(22, 105, COLLECT, "Collect", t->type == 16 ? "Bananas" : "Traps", BLUE_UI,
+        modal_action(16, 105, COLLECT, "Collect", t->type == 16 ? "Bananas" : "Traps", BLUE_UI,
                      BLUE_EDGE);
     }
 
     snprintf(text, sizeof text, "$%lu", (unsigned long)(t->spent * 7 / 10 / 100));
-    modal_action(254, 121, SELL, "SELL", text, ORANGE, ORANGE_EDGE);
+    modal_action(185, 121, SELL, "SELL", text, ORANGE, ORANGE_EDGE);
 }
 
 static void modal_update(int refresh)
@@ -577,11 +590,10 @@ static void modal_update(int refresh)
         modal();
     } else if (modal_cache.pops != t->pops) {
         char text[32];
-        struct dwindow window = dwindow_set((struct dwindow){266, 27, 358, 39});
-        fill(266, 27, 92, 12, TAN);
-        label(22, 27, 270, C_WHITE, tower_defs[t->type]->name, DTEXT_LEFT, 1);
+        struct dwindow window = dwindow_set((struct dwindow){205, 27, 297, 39});
+        fill(205, 27, 92, 12, TAN);
         snprintf(text, sizeof text, "Pops %lu", (unsigned long)t->pops);
-        label(357, 27, 92, C_WHITE, text, DTEXT_RIGHT, 0);
+        label(296, 27, 92, C_WHITE, text, DTEXT_RIGHT, 0);
         dwindow_set(window);
     }
 
@@ -647,7 +659,7 @@ void ui_draw(void)
     }
 
     if (previous_mode == MODAL && ui.mode != MODAL) {
-        map_mark(12, 22, 372, 180);
+        map_mark(MODAL_X, MODAL_Y, MODAL_WIDTH, MODAL_HEIGHT);
         modal_cache.valid = 0;
     }
 
