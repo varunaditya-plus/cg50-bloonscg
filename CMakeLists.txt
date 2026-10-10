@@ -12,8 +12,8 @@ set(ASSETS
   assets-cg/monkey-portraits.png
   assets-cg/monkey-sprites.png
   assets-cg/upgrade-portraits.png
-  assets-cg/upgrade-sprites.png
   assets-cg/combat-sprites.png
+  assets-cg/tower-facing.png
   assets-cg/meadow-placement.bin
   assets-cg/bloons.png
   assets-cg/upgrade-icons.png

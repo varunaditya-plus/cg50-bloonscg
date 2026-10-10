@@ -7,13 +7,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// Portraits/icons: https://www.spriters-resource.com/pc_computer/bloonstd6/
-// Monkey models: https://models.spriters-resource.com/pc_computer/bloonstd6/
-// Dartling upgrade sprites: https://github.com/HalfHydra/BTD6-API-Explorer/tree/180d07a074b8a9c0228731ec3f404670e43c6e80/assets/InstaMonkeyIcon
+// Native meshes, portraits and icons: https://store.steampowered.com/app/960090/Bloons_TD_6/
 extern const bopti_image_t img_meadow, img_monkey_portraits, img_monkey_sprites;
 extern const bopti_image_t img_bloons, img_upgrade_icons, img_ui_hud;
-extern const bopti_image_t img_upgrade_portraits, img_upgrade_sprites;
-extern const bopti_image_t img_combat_sprites;
+extern const bopti_image_t img_upgrade_portraits;
+extern const bopti_image_t img_combat_sprites, img_tower_facing;
 extern const font_t font_game_ui, font_game_title;
 
 enum { SELECT, PLACE, PICK, MODAL };
@@ -191,6 +189,9 @@ static const MonkeyAppearance *appearance(const Tower *tower)
 
 static void monkey(int index, int x, int y, const bopti_image_t *img)
 {
+    unsigned sprite = monkey_appearances[monkey_appearance_offsets[index]].sprite;
+    x += monkey_sprite_anchors[sprite][0];
+    y += monkey_sprite_anchors[sprite][1];
     unsigned part = 0;
     while (world_clip(x - 8, y - 8, 16, 16, &part)) {
         dsubimage(x - 8, y - 8, img, index % 2 * 16, index / 2 * 16, 16, 16, DIMAGE_NONE);
@@ -268,6 +269,42 @@ static void attack_effects(void)
         }
         map_mark(left, top, width, height);
     }
+}
+
+static void tower_sprite(unsigned id, int x, int y, int airborne)
+{
+    const Tower *tower = &game.towers[id];
+    const TowerAnimation *animation = &tower_animations[id];
+    const MonkeyAppearance *art = appearance(tower);
+    unsigned sprite = airborne ? art->air_sprite : art->sprite;
+    // Native rotors spin twice per second; four blades repeat every quarter turn.
+    if (airborne && tower->type == 8)
+        sprite += (game.time % 750) * 2 / 375;
+    unsigned facing = animation->facing;
+    if (tower->type == 3 || tower->type == 4 || tower->type == 16 ||
+        tower->type == 17 || tower->type == 18 ||
+        (!airborne && (tower->type == 7 || tower->type == 8)))
+        facing = 2;
+    if (airborne && (tower->air_vx || tower->air_vy))
+        facing = animation_direction(tower->air_vx, tower->air_vy);
+
+    if (animation->firing && game.time - animation->fired < 360 &&
+        (tower->type == 0 || tower->type == 2 || tower->type == 6 ||
+         tower->type == 10 || tower->type == 12 || tower->type == 19)) {
+        static const int8_t recoil_x[] = {-1, -1, 0, 1, 1, 1, 0, -1};
+        static const int8_t recoil_y[] = {0, -1, -1, -1, 0, 1, 1, 1};
+        x += recoil_x[facing];
+        y += recoil_y[facing];
+    }
+    const MonkeySpriteRect *rect = &monkey_sprite_rects[sprite * 8 + facing];
+    int left = x - 8 + monkey_sprite_anchors[sprite][0] + rect->x;
+    int top = y - 8 + monkey_sprite_anchors[sprite][1] + rect->y;
+    unsigned part = 0;
+    while (world_clip(left, top, rect->width, rect->height, &part)) {
+        dsubimage(left, top, &img_tower_facing, rect->sx, rect->sy,
+                  rect->width, rect->height, DIMAGE_NONE);
+    }
+    map_mark(left, top, rect->width, rect->height);
 }
 
 static int next_tower(int from, int step)
@@ -553,6 +590,16 @@ static void modal_action(int x, int width, int row, const char *name, const char
     label(x + width / 2, 190, width - 8, C_WHITE, value, DTEXT_CENTER, 0);
 }
 
+static void upgrade_icon(unsigned index, int x, int y, int large)
+{
+    unsigned sx = index % 14 * 16;
+    unsigned sy = index / 14 * 16;
+    if (large)
+        enlarged(&img_upgrade_icons, sx, sy, 16, x, y);
+    else
+        dsubimage(x, y, &img_upgrade_icons, sx, sy, 16, 16, DIMAGE_NONE);
+}
+
 static void modal(void)
 {
     Tower *t = &game.towers[ui.tower];
@@ -573,11 +620,7 @@ static void modal(void)
         fill(18, y, 56, 8, SKY - ((y - 46) / 8 << 5));
     }
     int portrait = appearance(t)->portrait;
-    const bopti_image_t *image = portrait == 255 ? &img_monkey_portraits : &img_upgrade_portraits;
-    if (portrait == 255) {
-        portrait = t->type;
-    }
-    enlarged(image, portrait % 2 * 24, portrait / 2 * 24, 24, 22, 69);
+    enlarged(&img_upgrade_portraits, portrait % 2 * 24, portrait / 2 * 24, 24, 22, 69);
 
     int visible = 0;
 
@@ -614,8 +657,7 @@ static void modal(void)
 
         if (owned) {
             int lines = wrapped(105, y + 8, 59, CREAM, owned->name, 3);
-            dsubimage(86, y + 21, &img_upgrade_icons, owned->icon % 14 * 16, owned->icon / 14 * 16,
-                      16, 16, DIMAGE_NONE);
+            upgrade_icon(owned->icon, 86, y + 21, 0);
             if (lines < 3) {
                 label(105, y + 29, 59, LIME, "OWNED", DTEXT_LEFT, 0);
             }
@@ -624,8 +666,7 @@ static void modal(void)
         }
 
         if (next) {
-            enlarged(&img_upgrade_icons, next->icon % 14 * 16, next->icon / 14 * 16, 16, 175,
-                     y + 5);
+            upgrade_icon(next->icon, 175, y + 5, 1);
             wrapped(211, y + 4, 91, C_WHITE, next->name, 2);
             if (allowed) {
                 snprintf(text, sizeof text, "$%u", next->price);
@@ -855,15 +896,10 @@ void ui_draw(void)
             continue;
         }
         seen++;
-        int sprite = appearance(t)->sprite;
-        const bopti_image_t *image = sprite == 255 ? &img_monkey_sprites : &img_upgrade_sprites;
-        if (sprite == 255) {
-            sprite = t->type;
-        }
-        monkey(sprite, map_x(t->x), map_y(t->y), image);
+        tower_sprite(i, map_x(t->x), map_y(t->y), 0);
         const TowerProfile *p = tower_profile(t);
         if (p && (p->support & S_AIR)) {
-            monkey(sprite, map_x(t->air_x), map_y(t->air_y), image);
+            tower_sprite(i, map_x(t->air_x), map_y(t->air_y), 1);
         }
     }
 

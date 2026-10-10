@@ -18,11 +18,6 @@ upgrade-portraits.png:
   name: img_upgrade_portraits
   profile: p8
 
-upgrade-sprites.png:
-  type: bopti-image
-  name: img_upgrade_sprites
-  profile: p8
-
 meadow-placement.bin:
   type: binary
   name: meadow_placement
@@ -69,4 +64,9 @@ game-title.png:
 combat-sprites.png:
   type: bopti-image
   name: img_combat_sprites
+  profile: p8
+
+tower-facing.png:
+  type: bopti-image
+  name: img_tower_facing
   profile: p8
