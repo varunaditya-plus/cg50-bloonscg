@@ -169,6 +169,8 @@ unsigned animation_attack_style(unsigned owner, const AttackDef *attack)
         }
     }
 
+    if (attack->motion_flags & MF_PATH_REVERSE)
+        return V_ZOMBIE;
     if (attack->flags & A_WALL)
         return V_WALL;
     if (attack->flags & A_FOAM)

@@ -38,6 +38,7 @@ enum {
 };
 enum { CAMO = 1, REGROW = 2, FORTIFIED = 4 };
 enum { IMM_LEAD = 1, IMM_BLACK = 2, IMM_WHITE = 4, IMM_PURPLE = 8, IMM_FROZEN = 16 };
+enum { MF_PATH_REVERSE = 4096, NECRO_CHOOSE = 65535, NECRO_NONE = 65534 };
 enum attack_flags {
     A_RADIAL = 1u << 0,
     A_AREA = 1u << 1,
@@ -105,7 +106,8 @@ enum attack_target_flags {
     AT_NO_GLUE = 256,
     AT_NO_WIND = 512,
     AT_NO_BOSS = 1024,
-    AT_NO_CONCOCTION = 2048
+    AT_NO_CONCOCTION = 2048,
+    AT_REQUIRE_CAMO_TARGET = 4096
 };
 enum effect_kind {
     EF_FREEZE,
@@ -323,6 +325,8 @@ typedef struct {
     uint16_t support_rate, support_range, support_pierce, support_immunity;
     uint16_t pierce_remainder[ATTACK_LIMIT];
     uint32_t farm_round;
+    uint32_t necro_round, necro_clock, necro_budget_clock;
+    uint16_t necro_grave[2], necro_used;
     uint16_t placement_lives, lowest_lives, farm_emitted;
     uint16_t previous_lives, lives_gained;
     uint8_t support_camo, support_initialised;
@@ -472,6 +476,12 @@ int combat_eligible(unsigned owner, const AttackDef *attack, unsigned enemy);
 int32_t collision_contact_fraction(const Shot *shot, int32_t next_x, int32_t next_y,
                                    const Bloon *bloon, unsigned radius);
 int collision_area_contains(const AttackDef *attack, int32_t x, int32_t y, const Bloon *bloon);
+void necromancy_reset_cache(void);
+void necromancy_begin_tick(void);
+unsigned necromancy_pop(const Bloon *bloon, unsigned owner, unsigned recipient);
+void necromancy_tick(unsigned owner, const TowerProfile *profile);
+int necromancy_step(Shot *shot, int32_t *next_x, int32_t *next_y);
+unsigned necromancy_damage(unsigned owner);
 void air_tick(Tower *tower, const TowerProfile *profile);
 int tower_target(const Tower *tower, const AttackDef *attack, int32_t x, int32_t y);
 void attack_emit(unsigned owner, const AttackDef *attack, int32_t x, int32_t y, int target);

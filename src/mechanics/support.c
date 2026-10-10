@@ -152,6 +152,8 @@ void support_attack(unsigned owner, const AttackDef *raw, AttackDef *a, unsigned
         rate = rate * (t->brew_rate ? t->brew_rate : 1000) / 1000;
         range = range * (t->brew_range ? t->brew_range : 1000) / 1000;
     }
+    if (t->type == 11 && p && p->tiers[2] == 4 && attack_has_damage(raw))
+        a->damage = bounded(a->damage + necromancy_damage(owner));
     a->range = bounded((unsigned)a->range * range / 1000);
     a->pierce = bounded((unsigned)a->pierce * pierce / 1000);
     a->immunity &= ~t->support_immunity;
@@ -202,6 +204,8 @@ void support_shot(unsigned owner, const AttackDef *raw, Shot *shot)
                                  game.towers[owner].buff_clock && game.towers[owner].buff_shots
                              ? game.towers[owner].brew_damage
                              : 0;
+    if (owner < TOWER_LIMIT && game.towers[owner].type == 11 && attack_has_damage(raw))
+        shot->damage_bonus += necromancy_damage(owner);
     shot->pierce_factor = owner < TOWER_LIMIT ? pierce_factor(&game.towers[owner], raw) : 1000;
     shot->brew_pierce = owner < TOWER_LIMIT && !(raw->flags & A_SENTRY) &&
                                 game.towers[owner].buff_clock && game.towers[owner].buff_shots

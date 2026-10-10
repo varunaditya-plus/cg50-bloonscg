@@ -241,7 +241,8 @@ static void target_candidate(const Tower *t, const AttackDef *a, int32_t x, int3
                              int *selected, int32_t *best)
 {
     Bloon *b = &game.bloons[id];
-    if (!eligible(t, a, b))
+    if (!eligible(t, a, b) ||
+        ((a->target_flags & AT_REQUIRE_CAMO_TARGET) && !(b->flags & CAMO)))
         return;
     int32_t d = distance_squared(x, y, b->x, b->y);
 
@@ -724,6 +725,8 @@ void towers_tick(void)
                                : 0;
             support_fired(i);
         }
+        if (t->type == 11)
+            necromancy_tick(i, p);
     }
 }
 

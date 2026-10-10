@@ -27,6 +27,7 @@ add_executable(bloonscg
   src/main.c
   src/mechanics/core.c
   src/mechanics/animations.c
+  src/mechanics/necromancy.c
   src/mechanics/combat.c
   src/mechanics/shots.c
   src/mechanics/collisions.c

@@ -100,6 +100,7 @@ void game_init(void)
     combat_reset_cache();
     shots_init();
     animations_init();
+    necromancy_reset_cache();
     // Medium Standard: https://github.com/KyleDerZweite/btd6-atlas/tree/ded3155921d70cd83d803b4d70022000e4c37c6b
     game.cash = 65000;
     game.lives = 150;
@@ -227,6 +228,7 @@ int game_place(unsigned type, int x, int y)
             game.cash -= price;
             game.tower_count++;
             tower_animations[i] = (TowerAnimation){.facing = 2};
+            necromancy_reset_cache();
             return i;
         }
     return -1;
@@ -283,6 +285,7 @@ int game_upgrade(unsigned id, unsigned path)
                 match = 0;
         if (match) {
             t->profile = i;
+            necromancy_reset_cache();
             t->spent += u->price * 100u;
             game.cash -= u->price * 100u;
             return 1;
@@ -300,6 +303,7 @@ void game_sell(unsigned id)
     t->active = 0;
     game.tower_count--;
     shots_owner_destroy(id);
+    necromancy_reset_cache();
 }
 
 const RoundDef *game_round(void)
@@ -329,6 +333,7 @@ void game_tick(void)
         return;
     game.time += TICK;
     animations_tick();
+    necromancy_begin_tick();
     rounds_tick();
     towers_tick();
     support_units_tick();

@@ -325,6 +325,7 @@ typedef struct DamageFrame {
     uint32_t parent_token;
     unsigned id, immunity, owner, credit, excess, children;
     unsigned group, child, branch;
+    uint16_t necro_recipient;
     uint8_t spawning, add_credit, pooled;
 } DamageFrame;
 
@@ -352,7 +353,7 @@ static void damage_release(DamageFrame *frame)
 }
 
 static DamageFrame *damage_begin(unsigned id, unsigned damage, unsigned immunity, unsigned owner,
-                                  unsigned *result)
+                                  unsigned recipient, unsigned *result)
 {
     *result = 0;
     if (id >= BLOON_LIMIT || !damage)
@@ -408,6 +409,9 @@ static DamageFrame *damage_begin(unsigned id, unsigned damage, unsigned immunity
     }
 
     animation_pop(b->x, b->y);
+    recipient = necromancy_pop(b, owner, recipient);
+    if (frame)
+        frame->necro_recipient = recipient;
     bloon_remove(b);
     if (payable)
         game.cash += game.round <= 50 ? 100 : 50;
@@ -427,7 +431,7 @@ static DamageFrame *damage_begin(unsigned id, unsigned damage, unsigned immunity
 int bloon_damage(unsigned id, unsigned damage, unsigned immunity, unsigned owner)
 {
     unsigned credit;
-    DamageFrame *frame = damage_begin(id, damage, immunity, owner, &credit);
+    DamageFrame *frame = damage_begin(id, damage, immunity, owner, NECRO_CHOOSE, &credit);
     if (!frame)
         return credit;
 
@@ -437,7 +441,7 @@ int bloon_damage(unsigned id, unsigned damage, unsigned immunity, unsigned owner
             unsigned enemy, amount, mask;
             if (frame->pop && combat_pop_next(frame->pop, &enemy, &amount, &mask)) {
                 DamageFrame *next = damage_begin(enemy, amount, mask, frame->parent.pop_source,
-                                                   &credit);
+                                                   NECRO_CHOOSE, &credit);
                 if (next) {
                     next->previous = frame;
                     frame = next;
@@ -468,7 +472,7 @@ int bloon_damage(unsigned id, unsigned damage, unsigned immunity, unsigned owner
             inherit(&game.bloons[child_id], &frame->parent, branch, frame->parent_token);
             if (frame->excess) {
                 DamageFrame *next = damage_begin(child_id, frame->excess, frame->immunity,
-                                                   frame->owner, &credit);
+                                                   frame->owner, frame->necro_recipient, &credit);
                 if (next) {
                     next->previous = frame;
                     next->add_credit = 1;

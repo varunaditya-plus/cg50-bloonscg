@@ -322,6 +322,8 @@ static int32_t sampled(const AttackCurvePoint *p, unsigned count, unsigned fract
 int projectile_step(Shot *s, int32_t *nx, int32_t *ny)
 {
     const AttackDef *a = s->attack;
+    if (a->motion_flags & MF_PATH_REVERSE)
+        return necromancy_step(s, nx, ny);
     if (a->refresh_pierce) {
         unsigned interval = a->refresh_pierce;
         if (a->motion_flags & 128) {
