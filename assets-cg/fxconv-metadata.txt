@@ -70,3 +70,8 @@ tower-facing.png:
   type: bopti-image
   name: img_tower_facing
   profile: p8
+
+support-sprites.png:
+  type: bopti-image
+  name: img_support_sprites
+  profile: p8

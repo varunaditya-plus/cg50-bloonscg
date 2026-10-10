@@ -1,7 +1,9 @@
 #include "game.h"
+#include "animations.h"
 #include <string.h>
 
 extern const uint8_t meadow_placement[];
+uint8_t sentry_facing[SENTRY_LIMIT];
 static uint32_t timer(uint32_t n)
 {
     return n > TICK ? n - TICK : 0;
@@ -380,6 +382,7 @@ static int spawn_sentry(unsigned owner, const TowerProfile *p)
             Sentry *s = &game.sentries[i];
             memset(s, 0, sizeof *s);
             s->active = 1;
+            sentry_facing[i] = 2;
             s->owner = owner;
             s->x = x;
             s->y = y;
@@ -576,6 +579,8 @@ void support_units_tick(void)
         int target = tower_target(owner, &effective, s->x, s->y);
         if (target < 0)
             continue;
+        sentry_facing[i] = animation_direction(game.bloons[target].x - s->x,
+                                               game.bloons[target].y - s->y);
         attack_emit(s->owner, raw, s->x, s->y, target);
         s->clock = raw->period > elapsed - s->clock ? raw->period - (elapsed - s->clock) : 0;
     }

@@ -2,6 +2,7 @@
 #include "animations.h"
 #include "combat_art.h"
 #include "world_art.h"
+#include "support_art.h"
 #include "monkeys/appearance.h"
 #include <gint/display.h>
 #include <gint/keyboard.h>
@@ -14,7 +15,8 @@ extern const bopti_image_t img_bloons, img_upgrade_icons, img_ui_hud;
 extern const bopti_image_t img_upgrade_portraits;
 extern const bopti_image_t img_combat_sprites, img_tower_facing;
 extern const font_t font_game_ui, font_game_title;
-extern uint8_t bloon_glue_art[BLOON_LIMIT];
+extern const bopti_image_t img_support_sprites;
+extern uint8_t bloon_glue_art[BLOON_LIMIT], sentry_facing[SENTRY_LIMIT];
 
 enum { SELECT, PLACE, PICK, MODAL };
 enum { COLLECT = 3, SELL };
@@ -215,6 +217,20 @@ static void combat_sprite(unsigned index, int x, int y)
                   bounds->width, bounds->height, DIMAGE_NONE);
     }
     map_mark(left, top, bounds->width, bounds->height);
+}
+
+static void world_sprite(const bopti_image_t *image, unsigned index, unsigned size,
+                         const uint8_t *bounds, int x, int y)
+{
+    int left = x - size / 2 + bounds[0];
+    int top = y - size / 2 + bounds[1];
+    unsigned part = 0;
+
+    while (world_clip(left, top, bounds[2], bounds[3], &part)) {
+        dsubimage(left, top, image, index % 16 * size + bounds[0],
+                  index / 16 * size + bounds[1], bounds[2], bounds[3], DIMAGE_NONE);
+    }
+    map_mark(left, top, bounds[2], bounds[3]);
 }
 
 static unsigned bloon_facing(const Bloon *bloon)
@@ -908,11 +924,7 @@ void ui_draw(void)
         seen++;
         int x = map_x(drop->x);
         int y = map_y(drop->y);
-        unsigned part = 0;
-        while (world_clip(x - 1, y - 1, 3, 3, &part)) {
-            drect(x - 1, y - 1, x + 1, y + 1, 0xffe0);
-        }
-        map_mark(x - 1, y - 1, 3, 3);
+        world_sprite(&img_support_sprites, ART_BANANA, 16, support_bounds[ART_BANANA], x, y);
     }
 
     seen = 0;
@@ -928,11 +940,8 @@ void ui_draw(void)
         }
         int x = map_x(s->x);
         int y = map_y(s->y);
-        unsigned part = 0;
-        while (world_clip(x - 3, y - 3, 7, 7, &part)) {
-            drect_border(x - 3, y - 3, x + 3, y + 3, 0x4b44, 1, C_WHITE);
-        }
-        map_mark(x - 3, y - 3, 7, 7);
+        unsigned sprite = ART_SENTRY + sentry_facing[i];
+        world_sprite(&img_support_sprites, sprite, 16, support_bounds[sprite], x, y);
     }
 
     unsigned status_pixels = 8192;
@@ -958,12 +967,8 @@ void ui_draw(void)
             continue;
         }
         if (s->attack->flags & A_TRAP) {
-            unsigned part = 0;
-            while (world_clip(x - 4, y - 3, 9, 7, &part)) {
-                drect_border(x - 4, y - 3, x + 4, y + 3, s->trap_full ? 0xffe0 : 0x83a5,
-                             1, C_WHITE);
-            }
-            map_mark(x - 4, y - 3, 9, 7);
+            unsigned sprite = s->trap_full ? ART_TRAP_FULL : ART_TRAP_EMPTY;
+            world_sprite(&img_support_sprites, sprite, 16, support_bounds[sprite], x, y);
         } else {
             const CombatSprite *sprite = &projectile_art[shot_styles[id]];
             if (!sprite->count)
