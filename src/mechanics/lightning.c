@@ -1,4 +1,5 @@
 #include "game.h"
+#include "animations.h"
 
 static int closest(const Shot *s, int32_t x, int32_t y)
 {
@@ -40,6 +41,7 @@ int lightning_step(unsigned id)
             shot_release(s);
             return 1;
         }
+        animation_line(FX_LIGHTNING, s->x, s->y, game.bloons[target].x, game.bloons[target].y);
         s->x = game.bloons[target].x;
         s->y = game.bloons[target].y;
         unsigned branches = a->chain_splits > 2 ? 2 : a->chain_splits;
@@ -57,6 +59,8 @@ int lightning_step(unsigned id)
         int target = closest(s, s->fork_x[n], s->fork_y[n]);
         if (target < 0)
             continue;
+        animation_line(FX_LIGHTNING, s->fork_x[n], s->fork_y[n],
+                       game.bloons[target].x, game.bloons[target].y);
         s->x = game.bloons[target].x;
         s->y = game.bloons[target].y;
         s->fork_x[n] = s->x;

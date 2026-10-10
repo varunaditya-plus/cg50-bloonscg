@@ -1,4 +1,5 @@
 #include "game.h"
+#include "animations.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -389,6 +390,7 @@ static int new_shot(unsigned owner, const AttackDef *a, int32_t x, int32_t y)
         s->moab_bonus = impact->moab_bonus;
         s->fortified_lead_bonus = impact->fortified_lead_bonus;
     }
+    animation_shot(id);
     return id;
 }
 
@@ -428,6 +430,7 @@ static void rotate(Shot *s, int degrees)
 
 static void area_hit(unsigned owner, const AttackDef *a, int32_t x, int32_t y, unsigned damage)
 {
+    animation_area(owner, a, x, y);
     unsigned left = a->pierce;
     if (impact)
         left = a == impact->attack
@@ -565,6 +568,7 @@ static void emit(unsigned owner, const AttackDef *a, int32_t x, int32_t y, int t
         return;
     if (a->flags & A_BEAM) {
         Tower *t = &game.towers[owner];
+        animation_line(FX_BEAM, x, y, t->aim_x, t->aim_y);
         unsigned left = impact->pierce, count = 0;
         Shot ray = {.x = x, .y = y};
         for (int i = bloon_next(0); i >= 0; i = bloon_next(i + 1)) {
@@ -602,6 +606,8 @@ static void emit(unsigned owner, const AttackDef *a, int32_t x, int32_t y, int t
     if ((a->flags & A_HITSCAN) && !(a->flags & A_CHAIN)) {
         if (target < 0)
             return;
+        animation_line(FX_SPARK, game.bloons[target].x, game.bloons[target].y,
+                       game.bloons[target].x, game.bloons[target].y);
         unsigned damage = damage_value(a, &game.bloons[target], a->damage + impact->damage_bonus);
         hit_effects(target, a, owner);
         children(owner, a, TR_CONTACT, game.bloons[target].x, game.bloons[target].y, target);
@@ -709,6 +715,7 @@ void towers_tick(void)
                 t->aim_y = game.bloons[target].y;
             }
 
+            animation_fired(i, x, y, target);
             t->shots[j]++;
             attack_emit(i, a, x, y, target);
             unsigned overdue = elapsed - t->clocks[j];
@@ -776,6 +783,8 @@ void shots_tick(void)
                     }
             }
             if (target >= 0) {
+                animation_line(FX_SPARK, game.bloons[target].x, game.bloons[target].y,
+                               game.bloons[target].x, game.bloons[target].y);
                 s->x = game.bloons[target].x;
                 s->y = game.bloons[target].y;
                 shot_hit(i, target);
@@ -1036,6 +1045,7 @@ static int pop_area_begin(CombatPop *pop, const AttackDef *child)
             return 0;
         }
     }
+    animation_area(b->pop_source, child, b->x, b->y);
     pop->area_active = 1;
     for (int id = bloon_next(0); id >= 0; id = bloon_next(id + 1)) {
         Bloon *enemy = &game.bloons[id];

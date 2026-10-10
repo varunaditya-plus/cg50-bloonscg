@@ -1,4 +1,5 @@
 #include "game.h"
+#include "animations.h"
 #include <string.h>
 
 #ifndef __sh__
@@ -98,6 +99,7 @@ void game_init(void)
     bloons_reset_cache();
     combat_reset_cache();
     shots_init();
+    animations_init();
     // Medium Standard: https://github.com/KyleDerZweite/btd6-atlas/tree/ded3155921d70cd83d803b4d70022000e4c37c6b
     game.cash = 65000;
     game.lives = 150;
@@ -224,6 +226,7 @@ int game_place(unsigned type, int x, int y)
             t->spent = price;
             game.cash -= price;
             game.tower_count++;
+            tower_animations[i] = (TowerAnimation){.facing = 2};
             return i;
         }
     return -1;
@@ -325,6 +328,7 @@ void game_tick(void)
     if (game.won || game.lost)
         return;
     game.time += TICK;
+    animations_tick();
     rounds_tick();
     towers_tick();
     support_units_tick();

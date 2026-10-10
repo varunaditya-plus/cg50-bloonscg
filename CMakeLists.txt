@@ -13,6 +13,7 @@ set(ASSETS
   assets-cg/monkey-sprites.png
   assets-cg/upgrade-portraits.png
   assets-cg/upgrade-sprites.png
+  assets-cg/combat-sprites.png
   assets-cg/meadow-placement.bin
   assets-cg/bloons.png
   assets-cg/upgrade-icons.png
@@ -25,6 +26,7 @@ fxconv_declare_assets(${ASSETS} WITH_METADATA)
 add_executable(bloonscg
   src/main.c
   src/mechanics/core.c
+  src/mechanics/animations.c
   src/mechanics/combat.c
   src/mechanics/shots.c
   src/mechanics/collisions.c

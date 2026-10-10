@@ -1,4 +1,5 @@
 #include "game.h"
+#include "animations.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -406,6 +407,7 @@ static DamageFrame *damage_begin(unsigned id, unsigned damage, unsigned immunity
         frame->spawning = frame->add_credit = 0;
     }
 
+    animation_pop(b->x, b->y);
     bloon_remove(b);
     if (payable)
         game.cash += game.round <= 50 ? 100 : 50;

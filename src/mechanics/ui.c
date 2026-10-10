@@ -1,8 +1,11 @@
 #include "game.h"
+#include "animations.h"
+#include "combat_art.h"
 #include "monkeys/appearance.h"
 #include <gint/display.h>
 #include <gint/keyboard.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 // Portraits/icons: https://www.spriters-resource.com/pc_computer/bloonstd6/
 // Monkey models: https://models.spriters-resource.com/pc_computer/bloonstd6/
@@ -10,6 +13,7 @@
 extern const bopti_image_t img_meadow, img_monkey_portraits, img_monkey_sprites;
 extern const bopti_image_t img_bloons, img_upgrade_icons, img_ui_hud;
 extern const bopti_image_t img_upgrade_portraits, img_upgrade_sprites;
+extern const bopti_image_t img_combat_sprites;
 extern const font_t font_game_ui, font_game_title;
 
 enum { SELECT, PLACE, PICK, MODAL };
@@ -192,6 +196,78 @@ static void monkey(int index, int x, int y, const bopti_image_t *img)
         dsubimage(x - 8, y - 8, img, index % 2 * 16, index / 2 * 16, 16, 16, DIMAGE_NONE);
     }
     map_mark(x - 8, y - 8, 16, 16);
+}
+
+static void combat_sprite(unsigned index, int x, int y)
+{
+    const SpriteBounds *bounds = &combat_bounds[index];
+    if (!bounds->width || !bounds->height)
+        return;
+    int left = x - 8 + bounds->x;
+    int top = y - 8 + bounds->y;
+    unsigned part = 0;
+    while (world_clip(left, top, bounds->width, bounds->height, &part)) {
+        dsubimage(left, top, &img_combat_sprites,
+                  index % 16 * 16 + bounds->x, index / 16 * 16 + bounds->y,
+                  bounds->width, bounds->height, DIMAGE_NONE);
+    }
+    map_mark(left, top, bounds->width, bounds->height);
+}
+
+static void attack_effects(void)
+{
+    unsigned beam_pixels = 8192;
+
+    for (unsigned i = 0; i < animation_count; i++) {
+        const AnimationEffect *effect = &animation_effects[i];
+        const CombatSprite *sprite = &effect_art[effect->kind];
+        int x = map_x(effect->x), y = map_y(effect->y);
+
+        if (!sprite->count)
+            continue;
+        if (effect->kind != FX_BEAM && effect->kind != FX_LIGHTNING) {
+            combat_sprite(sprite->first + animation_frame(effect, sprite->count), x, y);
+            continue;
+        }
+
+        int end_x = map_x(effect->end_x), end_y = map_y(effect->end_y);
+        int dx = end_x - x, dy = end_y - y;
+        unsigned length = (unsigned)(abs(dx) > abs(dy) ? abs(dx) : abs(dy));
+        unsigned segments = length / 8 + 1;
+        unsigned frame = animation_direction(dx, dy);
+        const SpriteBounds *bounds = &combat_bounds[sprite->first + frame];
+        unsigned pixels = segments * bounds->width * bounds->height;
+
+        if (pixels <= beam_pixels) {
+            beam_pixels -= pixels;
+            for (unsigned j = 0; j < segments; j++) {
+                int tile_x = x + dx * (int)(2 * j + 1) / (int)(2 * segments);
+                int tile_y = y + dy * (int)(2 * j + 1) / (int)(2 * segments);
+                combat_sprite(sprite->first + frame, tile_x, tile_y);
+            }
+            continue;
+        }
+
+        int left = (x < end_x ? x : end_x) - 3;
+        int top = (y < end_y ? y : end_y) - 3;
+        int width = (x < end_x ? end_x - x : x - end_x) + 7;
+        int height = (y < end_y ? end_y - y : y - end_y) + 7;
+        unsigned part = 0;
+        while (world_clip(left, top, width, height, &part)) {
+            if (effect->kind == FX_BEAM) {
+                dline(x, y - 1, end_x, end_y - 1, 0xfd20);
+                dline(x, y + 1, end_x, end_y + 1, 0xfd20);
+                dline(x, y, end_x, end_y, C_WHITE);
+            } else {
+                int bend = ((game.time - effect->born) / TICK & 1) ? 2 : -2;
+                int mid_x = (x + end_x) / 2 + bend;
+                int mid_y = (y + end_y) / 2 - bend;
+                dline(x, y, mid_x, mid_y, 0x07ff);
+                dline(mid_x, mid_y, end_x, end_y, C_WHITE);
+            }
+        }
+        map_mark(left, top, width, height);
+    }
 }
 
 static int next_tower(int from, int step)
@@ -724,8 +800,11 @@ void ui_draw(void)
         }
     }
 
+    unsigned projectile_pixels = 8192;
+
     for (unsigned n = 0; n < game.shot_count; n++) {
-        Shot *s = &game.shots[game.shot_active[n]];
+        unsigned id = game.shot_active[n];
+        Shot *s = &game.shots[id];
         int x = map_x(s->x);
         int y = map_y(s->y);
         if (x < 0 || x >= 326 || y < 0 || y >= 205) {
@@ -739,11 +818,32 @@ void ui_draw(void)
             }
             map_mark(x - 4, y - 3, 9, 7);
         } else {
-            unsigned part = 0;
-            while (world_clip(x, y, 1, 1, &part)) {
-                dpixel(x, y, (s->attack->flags & A_SPIKE) ? C_WHITE : 0xffc0);
+            const CombatSprite *sprite = &projectile_art[shot_styles[id]];
+            if (!sprite->count)
+                continue;
+            if (!projectile_pixels) {
+                unsigned part = 0;
+                while (world_clip(x, y, 1, 1, &part)) {
+                    dpixel(x, y, (s->attack->flags & A_SPIKE) ? C_WHITE : 0xffc0);
+                }
+                map_mark(x, y, 1, 1);
+                continue;
             }
-            map_mark(x, y, 1, 1);
+            unsigned frame = 0;
+            if (sprite->motion == 1)
+                frame = animation_direction(s->vx, s->vy);
+            else if (sprite->motion == 2)
+                frame = s->age / 360 & 3;
+            else if (sprite->motion == 3) {
+                frame = s->pierce ? s->pierce - 1 : 0;
+                if (frame >= sprite->count)
+                    frame = sprite->count - 1;
+            }
+            const SpriteBounds *bounds = &combat_bounds[sprite->first + frame];
+            unsigned pixels = bounds->width * bounds->height;
+            // Crowded scenes retain every projectile marker without unlimited sprite overdraw.
+            projectile_pixels = pixels < projectile_pixels ? projectile_pixels - pixels : 0;
+            combat_sprite(sprite->first + frame, x, y);
         }
     }
 
@@ -766,6 +866,8 @@ void ui_draw(void)
             monkey(sprite, map_x(t->air_x), map_y(t->air_y), image);
         }
     }
+
+    attack_effects();
 
     if (ui.mode == PLACE) {
         int valid = can_place_monkey(ui.selected, terrain_x(ui.x), terrain_y(ui.y), -1);

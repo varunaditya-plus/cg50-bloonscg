@@ -65,3 +65,8 @@ game-title.png:
   height: 17
   char-spacing: 1
   title: Bloons CG Lilita One 14px
+
+combat-sprites.png:
+  type: bopti-image
+  name: img_combat_sprites
+  profile: p8

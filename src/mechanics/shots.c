@@ -1,4 +1,5 @@
 #include "game.h"
+#include "animations.h"
 #include <string.h>
 
 enum { NO_HISTORY = UINT16_MAX };
@@ -30,6 +31,7 @@ int shot_acquire(void)
         return -1;
     }
     unsigned id = game.shot_free[--game.shot_free_count];
+    shot_styles[id] = V_DART;
     Shot *s = &game.shots[id];
     memset(s, 0, sizeof *s);
     s->active = 1;
@@ -62,6 +64,7 @@ void shot_release(Shot *s)
     unsigned id = (unsigned)(s - game.shots), position = s->active_index;
     shot_history_reset(s);
     s->active = 0;
+    shot_styles[id] = V_DART;
     unsigned moved = game.shot_active[--game.shot_count];
 
     if (position < game.shot_count) {
