@@ -1,6 +1,7 @@
 #include "game.h"
 #include "animations.h"
 #include "combat_art.h"
+#include "world_art.h"
 #include "monkeys/appearance.h"
 #include <gint/display.h>
 #include <gint/keyboard.h>
@@ -13,6 +14,7 @@ extern const bopti_image_t img_bloons, img_upgrade_icons, img_ui_hud;
 extern const bopti_image_t img_upgrade_portraits;
 extern const bopti_image_t img_combat_sprites, img_tower_facing;
 extern const font_t font_game_ui, font_game_title;
+extern uint8_t bloon_glue_art[BLOON_LIMIT];
 
 enum { SELECT, PLACE, PICK, MODAL };
 enum { COLLECT = 3, SELL };
@@ -213,6 +215,125 @@ static void combat_sprite(unsigned index, int x, int y)
                   bounds->width, bounds->height, DIMAGE_NONE);
     }
     map_mark(left, top, bounds->width, bounds->height);
+}
+
+static unsigned bloon_facing(const Bloon *bloon)
+{
+    unsigned lo = 0, hi = meadow_path_count - 1;
+    while (hi - lo > 1) {
+        unsigned mid = (lo + hi) / 2;
+        if ((int32_t)meadow_path[mid].distance <= bloon->distance)
+            lo = mid;
+        else
+            hi = mid;
+    }
+
+    return animation_direction(meadow_path[lo + 1].x - meadow_path[lo].x,
+                               meadow_path[lo + 1].y - meadow_path[lo].y);
+}
+
+static unsigned bloon_sprite(unsigned id, unsigned damage, unsigned facing)
+{
+    const Bloon *bloon = &game.bloons[id];
+    if (bloon->type >= MOAB) {
+        unsigned status = bloon->glue ? (bloon_glue_art[id] ? bloon_glue_art[id] : 1) : 0;
+        return blimp_art[bloon->type - MOAB][!!(bloon->flags & FORTIFIED)][damage][status] + facing;
+    }
+
+    return bloon_art[bloon->type][bloon->flags & 7][damage];
+}
+
+static void bloon_image(unsigned index, int x, int y)
+{
+    const BloonSpriteRect *rect = &bloon_rects[index];
+    if (!rect->width || !rect->height)
+        return;
+    int left = x - 12 + rect->x, top = y - 12 + rect->y;
+    unsigned part = 0;
+
+    while (world_clip(left, top, rect->width, rect->height, &part)) {
+        dsubimage(left, top, &img_bloons, rect->sx, rect->sy,
+                  rect->width, rect->height, DIMAGE_NONE);
+    }
+    map_mark(left, top, rect->width, rect->height);
+}
+
+static void bloon_status(unsigned sprite, int x, int y, unsigned *pixels)
+{
+    const BloonSpriteRect *rect = &bloon_rects[sprite];
+    unsigned area = rect->width * rect->height;
+
+    if (area > *pixels)
+        return;
+    *pixels -= area;
+    bloon_image(sprite, x, y);
+}
+
+static void draw_bloon(unsigned id, int x, int y, unsigned *status_pixels)
+{
+    const Bloon *bloon = &game.bloons[id];
+    unsigned damage = 0;
+    unsigned maximum = bloon->flags & FORTIFIED ? bloon_defs[bloon->type].fort_hp
+                                                : bloon_defs[bloon->type].hp;
+    while (damage < 4 && bloon->hp * 5u <= maximum * (4u - damage))
+        damage++;
+    unsigned facing = bloon->type >= MOAB ? bloon_facing(bloon) : 2;
+    bloon_image(bloon_sprite(id, damage, facing), x, y);
+
+    // DOT identities and overlay layers: https://github.com/KyleDerZweite/btd6-atlas/tree/ded3155921d70cd83d803b4d70022000e4c37c6b/data/56.3-build-24829026/game-data/Towers
+    unsigned acid = 0, burn = 0, shock = 0;
+    for (unsigned i = 0; i < DOT_LIMIT; i++) {
+        const DotStatus *dot = &bloon->dots[i];
+        if (!dot->time)
+            continue;
+        if (dot->mutation == MUT_ACID)
+            acid = dot->period < 12000 ? 2 : 1;
+        if (dot->mutation == MUT_LASER_SHOCK)
+            shock = 1;
+        if (dot->family == 11133 || dot->family == 9561)
+            burn = 1;
+    }
+
+    if (bloon->type >= MOAB) {
+        const uint16_t (*status)[4][8] =
+            blimp_status_art[bloon->type - MOAB][!!(bloon->flags & FORTIFIED)][damage];
+        unsigned frame = game.time / 500 & 3;
+        if (shock)
+            bloon_status(status[1][frame][facing], x, y, status_pixels);
+        if (burn)
+            bloon_status(status[0][frame][facing], x, y, status_pixels);
+        if (bloon->pop_attack) {
+            const AttackDef *attack = bloon->pop_attack;
+            for (unsigned i = 0; i < attack->effect_count; i++) {
+                if (attack->effects[i].kind == EF_CONCOCTION) {
+                    bloon_status(status[2][0][facing], x, y, status_pixels);
+                    break;
+                }
+            }
+        }
+        return;
+    }
+
+    if (shock)
+        bloon_status(normal_status_art[4][game.time / 500 & 3], x, y, status_pixels);
+
+    const uint16_t *overlays = bloon_overlays[bloon->type][!!(bloon->flags & REGROW)];
+    unsigned glue = bloon_glue_art[id] ? bloon_glue_art[id] : 1;
+    if (bloon->glue)
+        bloon_image(overlays[glue - 1], x, y);
+    if (bloon->freeze)
+        bloon_image(overlays[3], x, y);
+
+    if (acid == 1)
+        bloon_image(overlays[4], x, y);
+    if (burn) {
+        unsigned group = bloon->type == RED || bloon->type == BLACK || bloon->type == WHITE;
+        if (bloon->flags & REGROW)
+            group += 2;
+        bloon_status(normal_status_art[group][game.time / 250 & 3], x, y, status_pixels);
+    }
+    if (acid == 2)
+        bloon_image(overlays[5], x, y);
 }
 
 static void attack_effects(void)
@@ -814,6 +935,8 @@ void ui_draw(void)
         map_mark(x - 3, y - 3, 7, 7);
     }
 
+    unsigned status_pixels = 8192;
+
     for (unsigned i = bloon_next(0); i < BLOON_LIMIT; i = bloon_next(i + 1)) {
         Bloon *b = &game.bloons[i];
         int x = map_x(b->x);
@@ -821,24 +944,7 @@ void ui_draw(void)
         if (x < 0 || x > 325 || y < 0 || y > DHEIGHT) {
             continue;
         }
-        map_mark(x - 12, y - 12, 24, 24);
-        unsigned part = 0;
-        while (world_clip(x - 12, y - 12, 24, 24, &part)) {
-            dsubimage(x - 12, y - 12, &img_bloons, b->type * 24, 0, 24, 24, DIMAGE_NONE);
-            if (b->flags & FORTIFIED) {
-                drect_border(x - 4, y - 5, x + 4, y + 5, C_NONE, 1, 0x8c41);
-            }
-            if (b->flags & CAMO) {
-                dpixel(x - 2, y, 0x2445);
-                dpixel(x + 2, y - 2, 0x2445);
-            }
-            if (b->glue) {
-                dpixel(x, y, 0xff80);
-            }
-            if (b->freeze) {
-                drect_border(x - 3, y - 4, x + 3, y + 4, C_NONE, 1, 0x7fff);
-            }
-        }
+        draw_bloon(i, x, y, &status_pixels);
     }
 
     unsigned projectile_pixels = 8192;

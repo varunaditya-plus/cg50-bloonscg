@@ -8,6 +8,7 @@
 #define GROW_FORTIFIED 128u
 #define CASCADE_STATUS (1u << 31)
 static uint16_t allocation_hint, reserved_children;
+uint8_t bloon_glue_art[BLOON_LIMIT];
 static unsigned cached_path_segment;
 static uint32_t active_words[(BLOON_LIMIT + 31) / 32];
 static struct {
@@ -131,6 +132,7 @@ int bloon_spawn(unsigned type, unsigned flags, int32_t distance, unsigned max_re
         memset(b, 0, sizeof *b);
         b->generation = generation;
         b->active = 1;
+        bloon_glue_art[id] = 0;
         active_words[id / 32] |= 1u << (id % 32);
         b->type = type;
         if (type >= MOAB)
@@ -326,6 +328,7 @@ typedef struct DamageFrame {
     unsigned id, immunity, owner, credit, excess, children;
     unsigned group, child, branch;
     uint16_t necro_recipient;
+    uint8_t glue_art;
     uint8_t spawning, add_credit, pooled;
 } DamageFrame;
 
@@ -399,6 +402,7 @@ static DamageFrame *damage_begin(unsigned id, unsigned damage, unsigned immunity
         frame->parent = *b;
         frame->parent_token = ((uint32_t)b->generation << 16) | id;
         frame->id = id;
+        frame->glue_art = bloon_glue_art[id];
         frame->immunity = immunity;
         frame->owner = owner;
         frame->credit = credit;
@@ -470,6 +474,7 @@ int bloon_damage(unsigned id, unsigned damage, unsigned immunity, unsigned owner
             if (child_id < 0)
                 continue;
             inherit(&game.bloons[child_id], &frame->parent, branch, frame->parent_token);
+            bloon_glue_art[child_id] = frame->glue_art;
             if (frame->excess) {
                 DamageFrame *next = damage_begin(child_id, frame->excess, frame->immunity,
                                                    frame->owner, frame->necro_recipient, &credit);
@@ -646,6 +651,7 @@ void bloon_effect_buffed(unsigned id, const AttackDef *a, unsigned owner, unsign
             b->glue = time;
             b->glue_layers = depth;
             b->glue_level = e->value;
+            bloon_glue_art[id] = animation_glue_art(owner, a);
             b->slow = multiplier;
             b->moab_slow = multiplier;
         }
@@ -673,6 +679,7 @@ void bloon_effect_buffed(unsigned id, const AttackDef *a, unsigned owner, unsign
     }
 
     if ((a->flags & A_GLUE) && !has_effect(a, EF_GLUE_LEVEL) && (!moab || a->moab_slow)) {
+        bloon_glue_art[id] = animation_glue_art(owner, a);
         b->glue = duration;
         b->glue_layers = layers;
         b->slow = a->slow ? a->slow : 1000;
