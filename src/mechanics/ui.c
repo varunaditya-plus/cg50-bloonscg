@@ -1017,11 +1017,15 @@ void ui_draw(void)
     attack_effects();
 
     if (ui.mode == PLACE) {
-        int valid = can_place_monkey(ui.selected, terrain_x(ui.x), terrain_y(ui.y), -1);
-        monkey(ui.selected, ui.x, ui.y,
-               valid ? &img_monkey_sprites : &red_sprites);
-        dline(ui.x - 5, ui.y, ui.x + 5, ui.y, C_WHITE);
-        dline(ui.x, ui.y - 5, ui.x, ui.y + 5, C_WHITE);
+        int x = terrain_x(ui.x);
+        int y = terrain_y(ui.y);
+        int valid = can_place_monkey(ui.selected, x, y, -1);
+
+        x = map_x(world_x(x));
+        y = map_y(world_y(y));
+        monkey(ui.selected, x, y, valid ? &img_monkey_sprites : &red_sprites);
+        dline(x - 5, y, x + 5, y, C_WHITE);
+        dline(x, y - 5, x, y + 5, C_WHITE);
     }
 
     if (ui.mode == PICK) {
