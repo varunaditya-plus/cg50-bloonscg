@@ -362,7 +362,6 @@ static const TowerProfile
                 .tiers = {0, 0, 0},
                 .range = 11008,
                 .buff_speed = 1000,
-                .footprint = 1792,
                 .attack_count = 1,
                 .attacks =
                     {
@@ -394,7 +393,6 @@ static const TowerProfile
                 .tiers = {0, 0, 1},
                 .range = 14641,
                 .buff_speed = 1000,
-                .footprint = 1792,
                 .attack_count = 1,
                 .attacks =
                     {
@@ -426,7 +424,6 @@ static const TowerProfile
                 .tiers = {0, 0, 2},
                 .range = 14641,
                 .buff_speed = 1000,
-                .footprint = 1792,
                 .attack_count = 1,
                 .attacks =
                     {
@@ -457,7 +454,6 @@ static const TowerProfile
                 .tiers = {0, 0, 3},
                 .range = 14641,
                 .buff_speed = 1000,
-                .footprint = 1792,
                 .attack_count = 1,
                 .attacks =
                     {
@@ -491,7 +487,6 @@ static const TowerProfile
                 .tiers = {0, 0, 4},
                 .range = 14641,
                 .buff_speed = 1000,
-                .footprint = 1792,
                 .attack_count = 2,
                 .attacks =
                     {
@@ -548,7 +543,6 @@ static const TowerProfile
                 .tiers = {1, 0, 0},
                 .range = 11008,
                 .buff_speed = 1000,
-                .footprint = 1792,
                 .attack_count = 1,
                 .attacks =
                     {
@@ -580,7 +574,6 @@ static const TowerProfile
                 .tiers = {1, 0, 1},
                 .range = 14641,
                 .buff_speed = 1000,
-                .footprint = 1792,
                 .attack_count = 1,
                 .attacks =
                     {
@@ -612,7 +605,6 @@ static const TowerProfile
                 .tiers = {1, 0, 2},
                 .range = 14641,
                 .buff_speed = 1000,
-                .footprint = 1792,
                 .attack_count = 1,
                 .attacks =
                     {
@@ -643,7 +635,6 @@ static const TowerProfile
                 .tiers = {1, 0, 3},
                 .range = 14641,
                 .buff_speed = 1000,
-                .footprint = 1792,
                 .attack_count = 1,
                 .attacks =
                     {
@@ -677,7 +668,6 @@ static const TowerProfile
                 .tiers = {1, 0, 4},
                 .range = 14641,
                 .buff_speed = 1000,
-                .footprint = 1792,
                 .attack_count = 2,
                 .attacks =
                     {
@@ -734,7 +724,6 @@ static const TowerProfile
                 .tiers = {2, 0, 0},
                 .range = 11008,
                 .buff_speed = 1000,
-                .footprint = 1792,
                 .attack_count = 1,
                 .attacks =
                     {
@@ -766,7 +755,6 @@ static const TowerProfile
                 .tiers = {2, 0, 1},
                 .range = 14641,
                 .buff_speed = 1000,
-                .footprint = 1792,
                 .attack_count = 1,
                 .attacks =
                     {
@@ -798,7 +786,6 @@ static const TowerProfile
                 .tiers = {2, 0, 2},
                 .range = 14641,
                 .buff_speed = 1000,
-                .footprint = 1792,
                 .attack_count = 1,
                 .attacks =
                     {
@@ -829,7 +816,6 @@ static const TowerProfile
                 .tiers = {2, 0, 3},
                 .range = 14641,
                 .buff_speed = 1000,
-                .footprint = 1792,
                 .attack_count = 1,
                 .attacks =
                     {
@@ -863,7 +849,6 @@ static const TowerProfile
                 .tiers = {2, 0, 4},
                 .range = 14641,
                 .buff_speed = 1000,
-                .footprint = 1792,
                 .attack_count = 2,
                 .attacks =
                     {
@@ -920,7 +905,6 @@ static const TowerProfile
                 .tiers = {3, 0, 0},
                 .range = 11008,
                 .buff_speed = 1000,
-                .footprint = 1792,
                 .attack_count = 1,
                 .attacks =
                     {
@@ -948,7 +932,6 @@ static const TowerProfile
                 .tiers = {3, 0, 1},
                 .range = 14641,
                 .buff_speed = 1000,
-                .footprint = 1792,
                 .attack_count = 1,
                 .attacks =
                     {
@@ -976,7 +959,6 @@ static const TowerProfile
                 .tiers = {3, 0, 2},
                 .range = 14641,
                 .buff_speed = 1000,
-                .footprint = 1792,
                 .attack_count = 1,
                 .attacks =
                     {

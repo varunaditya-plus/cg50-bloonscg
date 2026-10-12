@@ -21,7 +21,6 @@ static const TowerProfile tack_shooter_data_2[] = {
         .tiers = {0, 0, 0},
         .range = 5888,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -48,7 +47,6 @@ static const TowerProfile tack_shooter_data_2[] = {
         .tiers = {0, 0, 1},
         .range = 5888,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -75,7 +73,6 @@ static const TowerProfile tack_shooter_data_2[] = {
         .tiers = {0, 0, 2},
         .range = 5888,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -102,7 +99,6 @@ static const TowerProfile tack_shooter_data_2[] = {
         .tiers = {0, 0, 3},
         .range = 5888,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -129,7 +125,6 @@ static const TowerProfile tack_shooter_data_2[] = {
         .tiers = {0, 0, 4},
         .range = 5888,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -156,7 +151,6 @@ static const TowerProfile tack_shooter_data_2[] = {
         .tiers = {1, 0, 0},
         .range = 5888,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -183,7 +177,6 @@ static const TowerProfile tack_shooter_data_2[] = {
         .tiers = {1, 0, 1},
         .range = 5888,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -210,7 +203,6 @@ static const TowerProfile tack_shooter_data_2[] = {
         .tiers = {1, 0, 2},
         .range = 5888,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -237,7 +229,6 @@ static const TowerProfile tack_shooter_data_2[] = {
         .tiers = {1, 0, 3},
         .range = 5888,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -264,7 +255,6 @@ static const TowerProfile tack_shooter_data_2[] = {
         .tiers = {1, 0, 4},
         .range = 5888,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -291,7 +281,6 @@ static const TowerProfile tack_shooter_data_2[] = {
         .tiers = {2, 0, 0},
         .range = 5888,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -318,7 +307,6 @@ static const TowerProfile tack_shooter_data_2[] = {
         .tiers = {2, 0, 1},
         .range = 5888,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -345,7 +333,6 @@ static const TowerProfile tack_shooter_data_2[] = {
         .tiers = {2, 0, 2},
         .range = 5888,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -372,7 +359,6 @@ static const TowerProfile tack_shooter_data_2[] = {
         .tiers = {2, 0, 3},
         .range = 5888,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -399,7 +385,6 @@ static const TowerProfile tack_shooter_data_2[] = {
         .tiers = {2, 0, 4},
         .range = 5888,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -426,7 +411,6 @@ static const TowerProfile tack_shooter_data_2[] = {
         .tiers = {3, 0, 0},
         .range = 5888,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -452,7 +436,6 @@ static const TowerProfile tack_shooter_data_2[] = {
         .tiers = {3, 0, 1},
         .range = 5888,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -478,7 +461,6 @@ static const TowerProfile tack_shooter_data_2[] = {
         .tiers = {3, 0, 2},
         .range = 5888,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -504,7 +486,6 @@ static const TowerProfile tack_shooter_data_2[] = {
         .tiers = {4, 0, 0},
         .range = 5888,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -530,7 +511,6 @@ static const TowerProfile tack_shooter_data_2[] = {
         .tiers = {4, 0, 1},
         .range = 5888,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -556,7 +536,6 @@ static const TowerProfile tack_shooter_data_2[] = {
         .tiers = {4, 0, 2},
         .range = 5888,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {

@@ -494,7 +494,6 @@ static const TowerProfile
                 .tiers = {0, 0, 0},
                 .range = 11520,
                 .buff_speed = 1000,
-                .footprint = 1536,
                 .attack_count = 1,
                 .attacks =
                     {
@@ -524,7 +523,6 @@ static const TowerProfile
                 .tiers = {0, 1, 0},
                 .range = 11520,
                 .buff_speed = 1000,
-                .footprint = 1536,
                 .attack_count = 1,
                 .attacks =
                     {
@@ -554,7 +552,6 @@ static const TowerProfile
                 .tiers = {0, 2, 0},
                 .range = 11520,
                 .buff_speed = 1000,
-                .footprint = 1536,
                 .attack_count = 1,
                 .attacks =
                     {
@@ -584,7 +581,6 @@ static const TowerProfile
                 .tiers = {0, 3, 0},
                 .range = 11520,
                 .buff_speed = 1000,
-                .footprint = 1536,
                 .attack_count = 2,
                 .attacks =
                     {
@@ -633,7 +629,6 @@ static const TowerProfile
                 .tiers = {1, 0, 0},
                 .range = 11520,
                 .buff_speed = 1000,
-                .footprint = 1536,
                 .attack_count = 1,
                 .attacks =
                     {
@@ -663,7 +658,6 @@ static const TowerProfile
                 .tiers = {1, 1, 0},
                 .range = 11520,
                 .buff_speed = 1000,
-                .footprint = 1536,
                 .attack_count = 1,
                 .attacks =
                     {
@@ -693,7 +687,6 @@ static const TowerProfile
                 .tiers = {1, 2, 0},
                 .range = 11520,
                 .buff_speed = 1000,
-                .footprint = 1536,
                 .attack_count = 1,
                 .attacks =
                     {
@@ -723,7 +716,6 @@ static const TowerProfile
                 .tiers = {1, 3, 0},
                 .range = 11520,
                 .buff_speed = 1000,
-                .footprint = 1536,
                 .attack_count = 2,
                 .attacks =
                     {
@@ -772,7 +764,6 @@ static const TowerProfile
                 .tiers = {2, 0, 0},
                 .range = 11520,
                 .buff_speed = 1000,
-                .footprint = 1536,
                 .support = S_ALCHEMIST,
                 .acid_period = 60000,
                 .acid_shots = 10,
@@ -807,7 +798,6 @@ static const TowerProfile
                 .tiers = {2, 1, 0},
                 .range = 11520,
                 .buff_speed = 1000,
-                .footprint = 1536,
                 .support = S_ALCHEMIST,
                 .acid_period = 60000,
                 .acid_shots = 10,
@@ -842,7 +832,6 @@ static const TowerProfile
                 .tiers = {2, 2, 0},
                 .range = 11520,
                 .buff_speed = 1000,
-                .footprint = 1536,
                 .support = S_ALCHEMIST,
                 .acid_period = 60000,
                 .acid_shots = 12,
@@ -877,7 +866,6 @@ static const TowerProfile
                 .tiers = {2, 3, 0},
                 .range = 11520,
                 .buff_speed = 1000,
-                .footprint = 1536,
                 .support = S_ALCHEMIST,
                 .acid_period = 60000,
                 .acid_shots = 12,
@@ -931,7 +919,6 @@ static const TowerProfile
                 .tiers = {3, 0, 0},
                 .range = 11520,
                 .buff_speed = 900,
-                .footprint = 1536,
                 .support = S_ALCHEMIST,
                 .acid_period = 60000,
                 .acid_shots = 10,
@@ -973,7 +960,6 @@ static const TowerProfile
                 .tiers = {3, 1, 0},
                 .range = 11520,
                 .buff_speed = 900,
-                .footprint = 1536,
                 .support = S_ALCHEMIST,
                 .acid_period = 60000,
                 .acid_shots = 10,
@@ -1015,7 +1001,6 @@ static const TowerProfile
                 .tiers = {3, 2, 0},
                 .range = 11520,
                 .buff_speed = 900,
-                .footprint = 1536,
                 .support = S_ALCHEMIST,
                 .acid_period = 60000,
                 .acid_shots = 12,
@@ -1057,7 +1042,6 @@ static const TowerProfile
                 .tiers = {4, 0, 0},
                 .range = 11520,
                 .buff_speed = 850,
-                .footprint = 1536,
                 .support = S_ALCHEMIST,
                 .acid_period = 60000,
                 .acid_shots = 10,
@@ -1099,7 +1083,6 @@ static const TowerProfile
                 .tiers = {4, 1, 0},
                 .range = 11520,
                 .buff_speed = 850,
-                .footprint = 1536,
                 .support = S_ALCHEMIST,
                 .acid_period = 60000,
                 .acid_shots = 10,
@@ -1141,7 +1124,6 @@ static const TowerProfile
                 .tiers = {4, 2, 0},
                 .range = 11520,
                 .buff_speed = 850,
-                .footprint = 1536,
                 .support = S_ALCHEMIST,
                 .acid_period = 60000,
                 .acid_shots = 12,

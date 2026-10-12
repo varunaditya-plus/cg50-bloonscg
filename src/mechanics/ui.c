@@ -163,27 +163,26 @@ static int world_clip(int x, int y, int width, int height, unsigned *part)
     return 0;
 }
 
-// Figma fills the viewport from the original map crop at x=5, scaled by 326/315.
-static int map_x(int world)
+static void placement_outline(unsigned type, int x, int y)
 {
-    int n = (screen_x(world) - 5) * 326;
-    return (n + (n < 0 ? -157 : 157)) / 315;
-}
+    const PlacementShape *shape = &placement_shapes[type];
+    x += shape->x;
+    y += shape->y;
 
-static int map_y(int world)
-{
-    int n = screen_y(world) * 326 - 2915;
-    return (n + (n < 0 ? -157 : 157)) / 315;
-}
+    for (int row = 0; row < 16; row++) {
+        uint32_t bits = shape->rows[row];
+        uint32_t above = row ? shape->rows[row - 1] : 0;
+        uint32_t below = row < 15 ? shape->rows[row + 1] : 0;
+        uint32_t edges = bits & ~(above & below & (bits << 1) & (bits >> 1));
 
-static int terrain_x(int x)
-{
-    return 5 + (x * 315 + 157) / 326;
-}
+        while (edges) {
+            int col = 15 - __builtin_ctz(edges);
+            edges &= edges - 1;
+            dpixel(x + col, y + row, C_WHITE);
+        }
+    }
 
-static int terrain_y(int y)
-{
-    return (y * 315 + 3078) / 326;
+    map_mark(x, y, 16, 16);
 }
 
 static const MonkeyAppearance *appearance(const Tower *tower)
@@ -1024,8 +1023,7 @@ void ui_draw(void)
         x = map_x(world_x(x));
         y = map_y(world_y(y));
         monkey(ui.selected, x, y, valid ? &img_monkey_sprites : &red_sprites);
-        dline(x - 5, y, x + 5, y, C_WHITE);
-        dline(x, y - 5, x, y + 5, C_WHITE);
+        placement_outline(ui.selected, x, y);
     }
 
     if (ui.mode == PICK) {

@@ -250,7 +250,6 @@ static const TowerProfile dartling_gunner_data_11[] = {
         .tiers = {0, 0, 0},
         .range = 5120,
         .buff_speed = 1000,
-        .footprint = 1792,
         .attack_count = 1,
         .attacks =
             {
@@ -279,7 +278,6 @@ static const TowerProfile dartling_gunner_data_11[] = {
         .tiers = {0, 1, 0},
         .range = 5120,
         .buff_speed = 1000,
-        .footprint = 1792,
         .attack_count = 1,
         .attacks =
             {
@@ -309,7 +307,6 @@ static const TowerProfile dartling_gunner_data_11[] = {
         .tiers = {0, 2, 0},
         .range = 5120,
         .buff_speed = 1000,
-        .footprint = 1792,
         .attack_count = 1,
         .attacks =
             {
@@ -339,7 +336,6 @@ static const TowerProfile dartling_gunner_data_11[] = {
         .tiers = {0, 3, 0},
         .range = 5120,
         .buff_speed = 1000,
-        .footprint = 1792,
         .attack_count = 1,
         .attacks =
             {
@@ -372,7 +368,6 @@ static const TowerProfile dartling_gunner_data_11[] = {
         .tiers = {1, 0, 0},
         .range = 5120,
         .buff_speed = 1000,
-        .footprint = 1792,
         .attack_count = 1,
         .attacks =
             {
@@ -401,7 +396,6 @@ static const TowerProfile dartling_gunner_data_11[] = {
         .tiers = {1, 1, 0},
         .range = 5120,
         .buff_speed = 1000,
-        .footprint = 1792,
         .attack_count = 1,
         .attacks =
             {
@@ -431,7 +425,6 @@ static const TowerProfile dartling_gunner_data_11[] = {
         .tiers = {1, 2, 0},
         .range = 5120,
         .buff_speed = 1000,
-        .footprint = 1792,
         .attack_count = 1,
         .attacks =
             {
@@ -461,7 +454,6 @@ static const TowerProfile dartling_gunner_data_11[] = {
         .tiers = {1, 3, 0},
         .range = 5120,
         .buff_speed = 1000,
-        .footprint = 1792,
         .attack_count = 1,
         .attacks =
             {
@@ -494,7 +486,6 @@ static const TowerProfile dartling_gunner_data_11[] = {
         .tiers = {2, 0, 0},
         .range = 5120,
         .buff_speed = 1000,
-        .footprint = 1792,
         .attack_count = 1,
         .attacks =
             {
@@ -531,7 +522,6 @@ static const TowerProfile dartling_gunner_data_11[] = {
         .tiers = {2, 1, 0},
         .range = 5120,
         .buff_speed = 1000,
-        .footprint = 1792,
         .attack_count = 1,
         .attacks =
             {
@@ -569,7 +559,6 @@ static const TowerProfile dartling_gunner_data_11[] = {
         .tiers = {2, 2, 0},
         .range = 5120,
         .buff_speed = 1000,
-        .footprint = 1792,
         .attack_count = 1,
         .attacks =
             {
@@ -607,7 +596,6 @@ static const TowerProfile dartling_gunner_data_11[] = {
         .tiers = {2, 3, 0},
         .range = 5120,
         .buff_speed = 1000,
-        .footprint = 1792,
         .attack_count = 1,
         .attacks =
             {
@@ -646,7 +634,6 @@ static const TowerProfile dartling_gunner_data_11[] = {
         .tiers = {3, 0, 0},
         .range = 5120,
         .buff_speed = 1000,
-        .footprint = 1792,
         .attack_count = 1,
         .attacks =
             {
@@ -684,7 +671,6 @@ static const TowerProfile dartling_gunner_data_11[] = {
         .tiers = {3, 1, 0},
         .range = 5120,
         .buff_speed = 1000,
-        .footprint = 1792,
         .attack_count = 1,
         .attacks =
             {
@@ -723,7 +709,6 @@ static const TowerProfile dartling_gunner_data_11[] = {
         .tiers = {3, 2, 0},
         .range = 5120,
         .buff_speed = 1000,
-        .footprint = 1792,
         .attack_count = 1,
         .attacks =
             {
@@ -762,7 +747,6 @@ static const TowerProfile dartling_gunner_data_11[] = {
         .tiers = {4, 0, 0},
         .range = 5120,
         .buff_speed = 1000,
-        .footprint = 1792,
         .attack_count = 1,
         .attacks =
             {
@@ -800,7 +784,6 @@ static const TowerProfile dartling_gunner_data_11[] = {
         .tiers = {4, 1, 0},
         .range = 5120,
         .buff_speed = 1000,
-        .footprint = 1792,
         .attack_count = 1,
         .attacks =
             {
@@ -839,7 +822,6 @@ static const TowerProfile dartling_gunner_data_11[] = {
         .tiers = {4, 2, 0},
         .range = 5120,
         .buff_speed = 1000,
-        .footprint = 1792,
         .attack_count = 1,
         .attacks =
             {

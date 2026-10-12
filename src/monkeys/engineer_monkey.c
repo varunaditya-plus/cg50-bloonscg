@@ -280,7 +280,6 @@ static const AttackDef engineer_monkey_data_14[] = {
 static const TowerProfile engineer_monkey_data_18[] = {
     {
         .range = 11520,
-        .footprint = 1024,
         .buff_speed = 1000,
         .attack_count = 1,
         .attacks =
@@ -307,7 +306,6 @@ static const TowerProfile engineer_monkey_data_18[] = {
 static const TowerProfile engineer_monkey_data_19[] = {
     {
         .range = 11520,
-        .footprint = 1024,
         .buff_speed = 1000,
         .attack_count = 1,
         .attacks =
@@ -334,7 +332,6 @@ static const TowerProfile engineer_monkey_data_19[] = {
 static const TowerProfile engineer_monkey_data_20[] = {
     {
         .range = 11520,
-        .footprint = 1024,
         .buff_speed = 1000,
         .attack_count = 1,
         .attacks =
@@ -365,7 +362,6 @@ static const TowerProfile engineer_monkey_data_20[] = {
 static const TowerProfile engineer_monkey_data_21[] = {
     {
         .range = 12544,
-        .footprint = 1024,
         .buff_speed = 1000,
         .attack_count = 1,
         .attacks =
@@ -392,7 +388,6 @@ static const TowerProfile engineer_monkey_data_21[] = {
 static const TowerProfile engineer_monkey_data_22[] = {
     {
         .range = 12544,
-        .footprint = 1024,
         .buff_speed = 1000,
         .attack_count = 1,
         .attacks =
@@ -448,7 +443,6 @@ static const AttackEffect engineer_monkey_data_23[] = {
 static const TowerProfile engineer_monkey_data_24[] = {
     {
         .range = 12544,
-        .footprint = 1024,
         .buff_speed = 1000,
         .attack_count = 1,
         .attacks =
@@ -479,7 +473,6 @@ static const TowerProfile engineer_monkey_data_24[] = {
 static const TowerProfile engineer_monkey_data_25[] = {
     {
         .range = 11520,
-        .footprint = 1024,
         .buff_speed = 1000,
         .attack_count = 1,
         .attacks =
@@ -506,7 +499,6 @@ static const TowerProfile engineer_monkey_data_25[] = {
 static const TowerProfile engineer_monkey_data_26[] = {
     {
         .range = 11520,
-        .footprint = 1024,
         .buff_speed = 1000,
         .attack_count = 1,
         .attacks =
@@ -533,7 +525,6 @@ static const TowerProfile engineer_monkey_data_26[] = {
 static const TowerProfile engineer_monkey_data_27[] = {
     {
         .range = 11520,
-        .footprint = 1024,
         .buff_speed = 1000,
         .attack_count = 1,
         .attacks =
@@ -563,7 +554,6 @@ static const TowerProfile engineer_monkey_data_27[] = {
 static const TowerProfile engineer_monkey_data_28[] = {
     {
         .range = 12544,
-        .footprint = 1024,
         .buff_speed = 1000,
         .attack_count = 1,
         .attacks =
@@ -590,7 +580,6 @@ static const TowerProfile engineer_monkey_data_28[] = {
 static const TowerProfile engineer_monkey_data_29[] = {
     {
         .range = 12544,
-        .footprint = 1024,
         .buff_speed = 1000,
         .attack_count = 1,
         .attacks =
@@ -641,7 +630,6 @@ static const TowerProfile
                 .tiers = {0, 0, 0},
                 .range = 10240,
                 .buff_speed = 1000,
-                .footprint = 1792,
                 .attack_count = 1,
                 .attacks =
                     {
@@ -666,7 +654,6 @@ static const TowerProfile
                 .tiers = {0, 0, 1},
                 .range = 10240,
                 .buff_speed = 1000,
-                .footprint = 1792,
                 .attack_count = 1,
                 .attacks =
                     {
@@ -691,7 +678,6 @@ static const TowerProfile
                 .tiers = {0, 0, 2},
                 .range = 10240,
                 .buff_speed = 1000,
-                .footprint = 1792,
                 .attack_count = 1,
                 .attacks =
                     {
@@ -719,7 +705,6 @@ static const TowerProfile
                 .tiers = {0, 0, 3},
                 .range = 10240,
                 .buff_speed = 1000,
-                .footprint = 1792,
                 .attack_count = 1,
                 .attacks =
                     {
@@ -748,7 +733,6 @@ static const TowerProfile
                 .tiers = {0, 0, 4},
                 .range = 10240,
                 .buff_speed = 1000,
-                .footprint = 1792,
                 .attack_count = 2,
                 .attacks =
                     {
@@ -807,7 +791,6 @@ static const TowerProfile
                 .tiers = {0, 1, 0},
                 .range = 15360,
                 .buff_speed = 1000,
-                .footprint = 1792,
                 .attack_count = 1,
                 .attacks =
                     {
@@ -832,7 +815,6 @@ static const TowerProfile
                 .tiers = {0, 1, 1},
                 .range = 15360,
                 .buff_speed = 1000,
-                .footprint = 1792,
                 .attack_count = 1,
                 .attacks =
                     {
@@ -857,7 +839,6 @@ static const TowerProfile
                 .tiers = {0, 1, 2},
                 .range = 15360,
                 .buff_speed = 1000,
-                .footprint = 1792,
                 .attack_count = 1,
                 .attacks =
                     {
@@ -885,7 +866,6 @@ static const TowerProfile
                 .tiers = {0, 1, 3},
                 .range = 15360,
                 .buff_speed = 1000,
-                .footprint = 1792,
                 .attack_count = 1,
                 .attacks =
                     {
@@ -914,7 +894,6 @@ static const TowerProfile
                 .tiers = {0, 1, 4},
                 .range = 15360,
                 .buff_speed = 1000,
-                .footprint = 1792,
                 .attack_count = 2,
                 .attacks =
                     {
@@ -973,7 +952,6 @@ static const TowerProfile
                 .tiers = {0, 2, 0},
                 .range = 15360,
                 .buff_speed = 1000,
-                .footprint = 1792,
                 .attack_count = 1,
                 .attacks =
                     {
@@ -1002,7 +980,6 @@ static const TowerProfile
                 .tiers = {0, 2, 1},
                 .range = 15360,
                 .buff_speed = 1000,
-                .footprint = 1792,
                 .attack_count = 1,
                 .attacks =
                     {
@@ -1031,7 +1008,6 @@ static const TowerProfile
                 .tiers = {0, 2, 2},
                 .range = 15360,
                 .buff_speed = 1000,
-                .footprint = 1792,
                 .attack_count = 1,
                 .attacks =
                     {
@@ -1061,7 +1037,6 @@ static const TowerProfile
                 .tiers = {0, 2, 3},
                 .range = 15360,
                 .buff_speed = 1000,
-                .footprint = 1792,
                 .attack_count = 1,
                 .attacks =
                     {
@@ -1092,7 +1067,6 @@ static const TowerProfile
                 .tiers = {0, 2, 4},
                 .range = 15360,
                 .buff_speed = 1000,
-                .footprint = 1792,
                 .attack_count = 2,
                 .attacks =
                     {
@@ -1153,7 +1127,6 @@ static const TowerProfile
                 .tiers = {0, 3, 0},
                 .range = 15360,
                 .buff_speed = 1000,
-                .footprint = 1792,
                 .round_start_rate = 250,
                 .round_start_time = 6000,
                 .attack_count = 2,
@@ -1208,7 +1181,6 @@ static const TowerProfile
                 .tiers = {0, 3, 1},
                 .range = 15360,
                 .buff_speed = 1000,
-                .footprint = 1792,
                 .round_start_rate = 250,
                 .round_start_time = 6000,
                 .attack_count = 2,
@@ -1262,7 +1234,6 @@ static const TowerProfile
                 .tiers = {0, 3, 2},
                 .range = 15360,
                 .buff_speed = 1000,
-                .footprint = 1792,
                 .round_start_rate = 250,
                 .round_start_time = 6000,
                 .attack_count = 2,
@@ -1317,7 +1288,6 @@ static const TowerProfile
                 .tiers = {1, 0, 0},
                 .range = 10240,
                 .buff_speed = 1000,
-                .footprint = 1792,
                 .support = S_SENTRY,
                 .sub_period = 60000,
                 .sub_life = 150000,
@@ -1350,7 +1320,6 @@ static const TowerProfile
                 .tiers = {1, 0, 1},
                 .range = 10240,
                 .buff_speed = 1000,
-                .footprint = 1792,
                 .support = S_SENTRY,
                 .sub_period = 60000,
                 .sub_life = 150000,
@@ -1383,7 +1352,6 @@ static const TowerProfile
                 .tiers = {1, 0, 2},
                 .range = 10240,
                 .buff_speed = 1000,
-                .footprint = 1792,
                 .support = S_SENTRY,
                 .sub_period = 60000,
                 .sub_life = 150000,
@@ -1419,7 +1387,6 @@ static const TowerProfile
                 .tiers = {1, 0, 3},
                 .range = 10240,
                 .buff_speed = 1000,
-                .footprint = 1792,
                 .support = S_SENTRY,
                 .sub_period = 60000,
                 .sub_life = 150000,
@@ -1456,7 +1423,6 @@ static const TowerProfile
                 .tiers = {1, 0, 4},
                 .range = 10240,
                 .buff_speed = 1000,
-                .footprint = 1792,
                 .support = S_SENTRY,
                 .sub_period = 60000,
                 .sub_life = 150000,
@@ -1523,7 +1489,6 @@ static const TowerProfile
                 .tiers = {1, 1, 0},
                 .range = 15360,
                 .buff_speed = 1000,
-                .footprint = 1792,
                 .support = S_SENTRY,
                 .sub_period = 60000,
                 .sub_life = 150000,
@@ -1556,7 +1521,6 @@ static const TowerProfile
                 .tiers = {1, 2, 0},
                 .range = 15360,
                 .buff_speed = 1000,
-                .footprint = 1792,
                 .support = S_SENTRY,
                 .sub_period = 60000,
                 .sub_life = 150000,
@@ -1593,7 +1557,6 @@ static const TowerProfile
                 .tiers = {1, 3, 0},
                 .range = 15360,
                 .buff_speed = 1000,
-                .footprint = 1792,
                 .round_start_rate = 250,
                 .round_start_time = 6000,
                 .support = S_SENTRY,
@@ -1655,7 +1618,6 @@ static const TowerProfile
                 .tiers = {2, 0, 0},
                 .range = 10240,
                 .buff_speed = 1000,
-                .footprint = 1792,
                 .support = S_SENTRY,
                 .sub_period = 30000,
                 .sub_life = 150000,
@@ -1688,7 +1650,6 @@ static const TowerProfile
                 .tiers = {2, 0, 1},
                 .range = 10240,
                 .buff_speed = 1000,
-                .footprint = 1792,
                 .support = S_SENTRY,
                 .sub_period = 30000,
                 .sub_life = 150000,
@@ -1721,7 +1682,6 @@ static const TowerProfile
                 .tiers = {2, 0, 2},
                 .range = 10240,
                 .buff_speed = 1000,
-                .footprint = 1792,
                 .support = S_SENTRY,
                 .sub_period = 30000,
                 .sub_life = 150000,
@@ -1757,7 +1717,6 @@ static const TowerProfile
                 .tiers = {2, 0, 3},
                 .range = 10240,
                 .buff_speed = 1000,
-                .footprint = 1792,
                 .support = S_SENTRY,
                 .sub_period = 30000,
                 .sub_life = 150000,
@@ -1794,7 +1753,6 @@ static const TowerProfile
                 .tiers = {2, 0, 4},
                 .range = 10240,
                 .buff_speed = 1000,
-                .footprint = 1792,
                 .support = S_SENTRY,
                 .sub_period = 30000,
                 .sub_life = 150000,
@@ -1861,7 +1819,6 @@ static const TowerProfile
                 .tiers = {2, 1, 0},
                 .range = 15360,
                 .buff_speed = 1000,
-                .footprint = 1792,
                 .support = S_SENTRY,
                 .sub_period = 30000,
                 .sub_life = 150000,
@@ -1894,7 +1851,6 @@ static const TowerProfile
                 .tiers = {2, 2, 0},
                 .range = 15360,
                 .buff_speed = 1000,
-                .footprint = 1792,
                 .support = S_SENTRY,
                 .sub_period = 30000,
                 .sub_life = 150000,
@@ -1931,7 +1887,6 @@ static const TowerProfile
                 .tiers = {2, 3, 0},
                 .range = 15360,
                 .buff_speed = 1000,
-                .footprint = 1792,
                 .round_start_rate = 250,
                 .round_start_time = 6000,
                 .support = S_SENTRY,
@@ -1993,7 +1948,6 @@ static const TowerProfile
                 .tiers = {3, 0, 0},
                 .range = 10240,
                 .buff_speed = 1000,
-                .footprint = 1792,
                 .support = S_SENTRY,
                 .sub_period = 30000,
                 .sub_life = 150000,
@@ -2026,7 +1980,6 @@ static const TowerProfile
                 .tiers = {3, 0, 1},
                 .range = 10240,
                 .buff_speed = 1000,
-                .footprint = 1792,
                 .support = S_SENTRY,
                 .sub_period = 30000,
                 .sub_life = 150000,
@@ -2059,7 +2012,6 @@ static const TowerProfile
                 .tiers = {3, 0, 2},
                 .range = 10240,
                 .buff_speed = 1000,
-                .footprint = 1792,
                 .support = S_SENTRY,
                 .sub_period = 30000,
                 .sub_life = 150000,
@@ -2095,7 +2047,6 @@ static const TowerProfile
                 .tiers = {3, 1, 0},
                 .range = 15360,
                 .buff_speed = 1000,
-                .footprint = 1792,
                 .support = S_SENTRY,
                 .sub_period = 30000,
                 .sub_life = 150000,
@@ -2128,7 +2079,6 @@ static const TowerProfile
                 .tiers = {3, 2, 0},
                 .range = 15360,
                 .buff_speed = 1000,
-                .footprint = 1792,
                 .support = S_SENTRY,
                 .sub_period = 30000,
                 .sub_life = 150000,

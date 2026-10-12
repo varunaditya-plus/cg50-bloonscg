@@ -76,7 +76,6 @@ static const TowerProfile dart_monkey_data_4[] = {
         .tiers = {0, 0, 0},
         .range = 8192,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -102,7 +101,6 @@ static const TowerProfile dart_monkey_data_4[] = {
         .tiers = {0, 0, 1},
         .range = 10240,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -128,7 +126,6 @@ static const TowerProfile dart_monkey_data_4[] = {
         .tiers = {0, 0, 2},
         .range = 12288,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -155,7 +152,6 @@ static const TowerProfile dart_monkey_data_4[] = {
         .tiers = {0, 0, 3},
         .range = 15360,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -182,7 +178,6 @@ static const TowerProfile dart_monkey_data_4[] = {
         .tiers = {0, 0, 4},
         .range = 15360,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -211,7 +206,6 @@ static const TowerProfile dart_monkey_data_4[] = {
         .tiers = {1, 0, 0},
         .range = 8192,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -237,7 +231,6 @@ static const TowerProfile dart_monkey_data_4[] = {
         .tiers = {1, 0, 1},
         .range = 10240,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -263,7 +256,6 @@ static const TowerProfile dart_monkey_data_4[] = {
         .tiers = {1, 0, 2},
         .range = 12288,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -290,7 +282,6 @@ static const TowerProfile dart_monkey_data_4[] = {
         .tiers = {1, 0, 3},
         .range = 15360,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -317,7 +308,6 @@ static const TowerProfile dart_monkey_data_4[] = {
         .tiers = {1, 0, 4},
         .range = 15360,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -346,7 +336,6 @@ static const TowerProfile dart_monkey_data_4[] = {
         .tiers = {2, 0, 0},
         .range = 8192,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -372,7 +361,6 @@ static const TowerProfile dart_monkey_data_4[] = {
         .tiers = {2, 0, 1},
         .range = 10240,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -398,7 +386,6 @@ static const TowerProfile dart_monkey_data_4[] = {
         .tiers = {2, 0, 2},
         .range = 12288,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -425,7 +412,6 @@ static const TowerProfile dart_monkey_data_4[] = {
         .tiers = {2, 0, 3},
         .range = 15360,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -452,7 +438,6 @@ static const TowerProfile dart_monkey_data_4[] = {
         .tiers = {2, 0, 4},
         .range = 15360,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -481,7 +466,6 @@ static const TowerProfile dart_monkey_data_4[] = {
         .tiers = {3, 0, 0},
         .range = 9421,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -508,7 +492,6 @@ static const TowerProfile dart_monkey_data_4[] = {
         .tiers = {3, 0, 1},
         .range = 11469,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -535,7 +518,6 @@ static const TowerProfile dart_monkey_data_4[] = {
         .tiers = {3, 0, 2},
         .range = 13517,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -563,7 +545,6 @@ static const TowerProfile dart_monkey_data_4[] = {
         .tiers = {4, 0, 0},
         .range = 9421,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -594,7 +575,6 @@ static const TowerProfile dart_monkey_data_4[] = {
         .tiers = {4, 0, 1},
         .range = 11469,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -625,7 +605,6 @@ static const TowerProfile dart_monkey_data_4[] = {
         .tiers = {4, 0, 2},
         .range = 13517,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {

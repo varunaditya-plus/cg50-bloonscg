@@ -36,6 +36,89 @@ const TowerDef *tower_defs[MONKEY_COUNT] = {
 };
 extern const uint8_t meadow_placement[];
 
+// Footprints fit the main body or platform; narrow top details can overhang paths.
+// Oval rasterization: https://gitea.planet-casio.com/Lephenixnoir/gint/src/branch/master/src/render/dellipse.c
+const PlacementShape placement_shapes[MONKEY_COUNT] = {
+    [0] = {.x = -4, .y = -9, .rows = {
+        0x3c00, 0x7e00, 0x7e00, 0xff00, 0xff00, 0xff00, 0xff00, 0x7e00,
+        0x7e00, 0x3c00,
+    }},
+    [1] = {.x = -4, .y = -9, .rows = {
+        0x1c00, 0x3e00, 0x7f00, 0xff80, 0xff80, 0xff80, 0xff80, 0xff80,
+        0xff80, 0x7f00, 0x3e00, 0x1c00,
+    }},
+    [2] = {.x = -4, .y = -5, .rows = {
+        0x3c00, 0x7e00, 0xff00, 0xff00, 0xff00, 0xff00, 0x7e00, 0x3c00,
+    }},
+    [3] = {.x = -7, .y = -7, .rows = {
+        0x0fc0, 0x1fe0, 0x3ff0, 0x7ff8, 0xfffc, 0xfffc, 0xfffc, 0xfffc,
+        0xfffc, 0x7ff8, 0x3ff0, 0x1fe0, 0x0fc0,
+    }},
+    [4] = {.x = -5, .y = -12, .rows = {
+        0x1e00, 0x3f00, 0x7f80, 0x7f80, 0xffc0, 0xffc0, 0xffc0, 0xffc0,
+        0x7f80, 0x7f80, 0x3f00, 0x1e00,
+    }},
+    [5] = {.x = -4, .y = -10, .rows = {
+        0x1800, 0x3c00, 0x7e00, 0x7e00, 0xff00, 0xff00, 0xff00, 0xff00,
+        0xff00, 0x7e00, 0x7e00, 0x3c00, 0x1800,
+    }},
+    [6] = {.x = -3, .y = -7, .rows = {
+        0x3000, 0x7800, 0xfc00, 0xfc00, 0xfc00, 0xfc00, 0x7800, 0x3000,
+    }},
+    [7] = {.x = -8, .y = -6, .rows = {
+        0x7ffe, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff,
+        0xffff, 0x7ffe,
+    }},
+    [8] = {.x = -8, .y = -8, .rows = {
+        0x7ffe, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff,
+        0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0x7ffe,
+    }},
+    [9] = {.x = -6, .y = -7, .rows = {
+        0x3f00, 0x7f80, 0xffc0, 0xffc0, 0xffc0, 0xffc0, 0xffc0, 0xffc0,
+        0x7f80, 0x3f00,
+    }},
+    [10] = {.x = -3, .y = -7, .rows = {
+        0x3000, 0x7800, 0xfc00, 0xfc00, 0xfc00, 0xfc00, 0xfc00, 0xfc00,
+        0x7800, 0x3000,
+    }},
+    [11] = {.x = -4, .y = -9, .rows = {
+        0x1800, 0x3c00, 0x7e00, 0xff00, 0xff00, 0xff00, 0xff00, 0xff00,
+        0x7e00, 0x3c00, 0x1800,
+    }},
+    [12] = {.x = -5, .y = -8, .rows = {
+        0x1f00, 0x3f80, 0x7fc0, 0xffe0, 0xffe0, 0xffe0, 0xffe0, 0x7fc0,
+        0x3f80, 0x1f00,
+    }},
+    [13] = {.x = -5, .y = -8, .rows = {
+        0x1e00, 0x3f00, 0x7f80, 0xffc0, 0xffc0, 0xffc0, 0xffc0, 0xffc0,
+        0x7f80, 0x3f00, 0x1e00,
+    }},
+    [14] = {.x = -4, .y = -10, .rows = {
+        0x1800, 0x3c00, 0x7e00, 0xff00, 0xff00, 0xff00, 0xff00, 0xff00,
+        0xff00, 0x7e00, 0x3c00, 0x1800,
+    }},
+    [15] = {.x = -4, .y = -10, .rows = {
+        0x1800, 0x3c00, 0x7e00, 0xff00, 0xff00, 0xff00, 0xff00, 0xff00,
+        0x7e00, 0x3c00, 0x1800,
+    }},
+    [16] = {.x = -6, .y = -4, .rows = {
+        0x7fe0, 0xfff0, 0xfff0, 0xfff0, 0xfff0, 0xfff0, 0xfff0, 0xfff0,
+        0x7fe0,
+    }},
+    [17] = {.x = -8, .y = -7, .rows = {
+        0x3ffc, 0x7ffe, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff,
+        0xffff, 0xffff, 0xffff, 0x7ffe, 0x3ffc,
+    }},
+    [18] = {.x = -5, .y = -9, .rows = {
+        0x1f00, 0x3f80, 0x7fc0, 0xffe0, 0xffe0, 0xffe0, 0xffe0, 0xffe0,
+        0x7fc0, 0x3f80, 0x1f00,
+    }},
+    [19] = {.x = -4, .y = -9, .rows = {
+        0x1c00, 0x3e00, 0x7f00, 0xff80, 0xff80, 0xff80, 0xff80, 0xff80,
+        0xff80, 0x7f00, 0x3e00, 0x1c00,
+    }},
+};
+
 // Q4 squared distances avoid 64-bit division in collision loops.
 int32_t distance_squared(int32_t x, int32_t y, int32_t a, int32_t b)
 {
@@ -82,6 +165,29 @@ int screen_y(int y)
     return (n + (n < 0 ? -128 : 128)) / Q;
 }
 
+// Figma fills the viewport from the original map crop at x=5, scaled by 326/315.
+int map_x(int world)
+{
+    int n = (screen_x(world) - 5) * 326;
+    return (n + (n < 0 ? -157 : 157)) / 315;
+}
+
+int map_y(int world)
+{
+    int n = screen_y(world) * 326 - 2915;
+    return (n + (n < 0 ? -157 : 157)) / 315;
+}
+
+int terrain_x(int x)
+{
+    return 5 + (x * 315 + 157) / 326;
+}
+
+int terrain_y(int y)
+{
+    return (y * 315 + 3078) / 326;
+}
+
 uint32_t game_random(void)
 {
     // Xorshift32: https://www.jstatsoft.org/article/view/v008i14
@@ -122,36 +228,27 @@ const Upgrade *tower_next_upgrade(const Tower *t, unsigned p)
     return &d->upgrades[p][s->tiers[p]];
 }
 
-typedef struct {
-    int32_t x, y;
-    unsigned rectangle;
-} PlacementFootprint;
-static PlacementFootprint placement_footprint(const TowerProfile *p)
+static int placement_overlaps(unsigned type, int x, int y, const Tower *other)
 {
-    if (p->footprint_rectangle)
-        return (PlacementFootprint){p->footprint_x / 2, p->footprint_y / 2, 1};
-    return (PlacementFootprint){p->footprint, p->footprint, 0};
-}
+    const PlacementShape *a = &placement_shapes[type];
+    const PlacementShape *b = &placement_shapes[other->type];
+    int dx = map_x(other->x) + b->x - (x + a->x);
+    int dy = map_y(other->y) + b->y - (y + a->y);
 
-static int placement_overlaps(PlacementFootprint a, int32_t ax, int32_t ay, PlacementFootprint b,
-                              int32_t bx, int32_t by)
-{
-    int32_t dx = ax > bx ? ax - bx : bx - ax, dy = ay > by ? ay - by : by - ay;
-    if (a.rectangle && b.rectangle)
-        return dx < a.x + b.x && dy < a.y + b.y;
-    if (!a.rectangle && !b.rectangle) {
-        int32_t radius = a.x + b.x;
-        return (int64_t)dx * dx + (int64_t)dy * dy < (int64_t)radius * radius;
-    }
+    if (dx <= -16 || dx >= 16 || dy <= -16 || dy >= 16)
+        return 0;
 
-    if (!a.rectangle) {
-        PlacementFootprint swap = a;
-        a = b;
-        b = swap;
+    for (int row = 0; row < 16; row++) {
+        int other_row = row - dy;
+        if (other_row < 0 || other_row >= 16)
+            continue;
+
+        uint32_t bits = b->rows[other_row];
+        bits = dx < 0 ? bits << -dx : bits >> dx;
+        if (a->rows[row] & bits)
+            return 1;
     }
-    dx = dx > a.x ? dx - a.x : 0;
-    dy = dy > a.y ? dy - a.y : 0;
-    return (int64_t)dx * dx + (int64_t)dy * dy < (int64_t)b.x * b.x;
+    return 0;
 }
 
 int can_place_monkey(unsigned type, int x, int y, int ignore)
@@ -159,46 +256,40 @@ int can_place_monkey(unsigned type, int x, int y, int ignore)
     if (type >= MONKEY_COUNT || !tower_defs[type] ||
         (game.tower_count >= TOWER_LIMIT && ignore < 0))
         return 0;
-    const TowerProfile *p = ignore >= 0 && ignore < TOWER_LIMIT && game.towers[ignore].active
-                                ? tower_profile(&game.towers[ignore])
-                            : tower_defs[type]->profile_count
-                                ? &tower_defs[type]->profiles[0]
-                                : NULL;
 
-    if (!p)
-        return 0;
-    PlacementFootprint shape = placement_footprint(p);
-    int32_t wx = world_x(x), wy = world_y(y);
-    int left = screen_x(wx - shape.x), right = screen_x(wx + shape.x);
-    int top = screen_y(wy - shape.y), bottom = screen_y(wy + shape.y);
+    const PlacementShape *shape = &placement_shapes[type];
+    int px = map_x(world_x(x));
+    int py = map_y(world_y(y));
 
-    if (left < 0 || top < 0 || right >= MAP_W || bottom >= MAP_H)
-        return 0;
+    for (int row = 0; row < 16; row++) {
+        uint32_t bits = shape->rows[row];
+        if (!bits)
+            continue;
 
-    for (int row = top; row <= bottom; row++)
-        for (int col = left; col <= right; col++) {
-            if (!shape.rectangle) {
-                int32_t dx = world_x(col) - wx, dy = world_y(row) - wy;
-                if (dx < 0)
-                    dx = -dx;
-                if (dy < 0)
-                    dy = -dy;
-                // Include the outer half-pixel touched by the circular footprint.
-                dx = dx > (Q * 25 + 53) / 54 ? dx - (Q * 25 + 53) / 54 : 0;
-                dy = dy > (Q * 15 + 27) / 28 ? dy - (Q * 15 + 27) / 28 : 0;
-                if ((int64_t)dx * dx + (int64_t)dy * dy > (int64_t)shape.x * shape.x)
-                    continue;
-            }
-            if (!(meadow_placement[row * 48 + col / 8] & (0x80 >> (col % 8))))
+        int yy = py + shape->y + row;
+        if (yy < 0 || yy >= 205)
+            return 0;
+        int source_y = terrain_y(yy);
+
+        while (bits) {
+            int col = 15 - __builtin_ctz(bits);
+            bits &= bits - 1;
+            int xx = px + shape->x + col;
+            if (xx < 0 || xx >= 326)
+                return 0;
+
+            int source_x = terrain_x(xx);
+            if (!(meadow_placement[source_y * 48 + source_x / 8] &
+                  (0x80 >> (source_x % 8))))
                 return 0;
         }
+    }
 
     for (unsigned id = 0; id < TOWER_LIMIT; id++) {
-        const Tower *t = &game.towers[id];
-        if (!t->active || id == (unsigned)ignore)
+        const Tower *other = &game.towers[id];
+        if (!other->active || id == (unsigned)ignore)
             continue;
-        PlacementFootprint other = placement_footprint(tower_profile(t));
-        if (placement_overlaps(shape, wx, wy, other, t->x, t->y))
+        if (placement_overlaps(type, px, py, other))
             return 0;
     }
     return 1;

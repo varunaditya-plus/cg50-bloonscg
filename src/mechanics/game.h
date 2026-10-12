@@ -242,13 +242,12 @@ static inline int attack_has_damage(const AttackDef *a)
 
 typedef struct TowerProfile {
     uint8_t tiers[3], attack_count;
-    uint16_t range, footprint, support, income, income_count;
+    uint16_t range, support, income, income_count;
     uint16_t buff_damage, buff_pierce, buff_speed;
     uint32_t buff_time;
-    uint16_t footprint_x, footprint_y;
     uint16_t buff_shots, support_stacks, support_max_stacks;
     uint16_t support_camo, support_immunity;
-    uint8_t footprint_rectangle, air_pursuit;
+    uint8_t air_pursuit;
     uint32_t buff_period, buff_block_time, acid_period, sub_period, sub_life;
     uint16_t acid_shots, acid_cap, buff_range_multiplier;
     uint16_t wrath_threshold, wrath_increment, wrath_max_stacks, wrath_timeout;
@@ -414,6 +413,13 @@ _Static_assert(sizeof(Game) < 11 * 1024 * 1024 / 2, "Game exceeds reserved CG50 
 extern Game game;
 #endif
 extern const TowerDef *tower_defs[MONKEY_COUNT];
+
+typedef struct {
+    int8_t x, y;
+    uint16_t rows[16];
+} PlacementShape;
+extern const PlacementShape placement_shapes[MONKEY_COUNT];
+
 extern const BloonDef bloon_defs[BLOON_TYPES];
 extern const RoundGroup round_groups[];
 extern const RoundDef rounds[60];
@@ -427,6 +433,10 @@ int world_x(int screen_x);
 int world_y(int screen_y);
 int screen_x(int world);
 int screen_y(int world);
+int map_x(int world);
+int map_y(int world);
+int terrain_x(int x);
+int terrain_y(int y);
 void path_position(int32_t distance, int32_t *x, int32_t *y);
 uint32_t game_random(void);
 void game_init(void);

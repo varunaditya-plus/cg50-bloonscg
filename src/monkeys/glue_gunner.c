@@ -527,7 +527,6 @@ static const TowerProfile glue_gunner_data_17[] = {
         .tiers = {0, 0, 0},
         .range = 11776,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -556,7 +555,6 @@ static const TowerProfile glue_gunner_data_17[] = {
         .tiers = {0, 0, 1},
         .range = 11776,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -585,7 +583,6 @@ static const TowerProfile glue_gunner_data_17[] = {
         .tiers = {0, 0, 2},
         .range = 11776,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -614,7 +611,6 @@ static const TowerProfile glue_gunner_data_17[] = {
         .tiers = {0, 0, 3},
         .range = 11776,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -643,7 +639,6 @@ static const TowerProfile glue_gunner_data_17[] = {
         .tiers = {1, 0, 0},
         .range = 11776,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -672,7 +667,6 @@ static const TowerProfile glue_gunner_data_17[] = {
         .tiers = {1, 0, 1},
         .range = 11776,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -701,7 +695,6 @@ static const TowerProfile glue_gunner_data_17[] = {
         .tiers = {1, 0, 2},
         .range = 11776,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -730,7 +723,6 @@ static const TowerProfile glue_gunner_data_17[] = {
         .tiers = {1, 0, 3},
         .range = 11776,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -759,7 +751,6 @@ static const TowerProfile glue_gunner_data_17[] = {
         .tiers = {2, 0, 0},
         .range = 11776,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -790,7 +781,6 @@ static const TowerProfile glue_gunner_data_17[] = {
         .tiers = {2, 0, 1},
         .range = 11776,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -821,7 +811,6 @@ static const TowerProfile glue_gunner_data_17[] = {
         .tiers = {2, 0, 2},
         .range = 11776,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -852,7 +841,6 @@ static const TowerProfile glue_gunner_data_17[] = {
         .tiers = {2, 0, 3},
         .range = 11776,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -883,7 +871,6 @@ static const TowerProfile glue_gunner_data_17[] = {
         .tiers = {3, 0, 0},
         .range = 11776,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -914,7 +901,6 @@ static const TowerProfile glue_gunner_data_17[] = {
         .tiers = {3, 0, 1},
         .range = 11776,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -946,7 +932,6 @@ static const TowerProfile glue_gunner_data_17[] = {
         .tiers = {3, 0, 2},
         .range = 11776,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {

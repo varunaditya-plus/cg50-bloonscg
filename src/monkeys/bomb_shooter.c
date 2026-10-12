@@ -311,7 +311,6 @@ static const TowerProfile bomb_shooter_data_18[] = {
         .tiers = {0, 0, 0},
         .range = 10240,
         .buff_speed = 1000,
-        .footprint = 1792,
         .attack_count = 1,
         .attacks =
             {
@@ -337,7 +336,6 @@ static const TowerProfile bomb_shooter_data_18[] = {
         .tiers = {0, 1, 0},
         .range = 10240,
         .buff_speed = 1000,
-        .footprint = 1792,
         .attack_count = 1,
         .attacks =
             {
@@ -363,7 +361,6 @@ static const TowerProfile bomb_shooter_data_18[] = {
         .tiers = {0, 2, 0},
         .range = 11264,
         .buff_speed = 1000,
-        .footprint = 1792,
         .attack_count = 1,
         .attacks =
             {
@@ -389,7 +386,6 @@ static const TowerProfile bomb_shooter_data_18[] = {
         .tiers = {0, 3, 0},
         .range = 12544,
         .buff_speed = 1000,
-        .footprint = 1792,
         .attack_count = 1,
         .attacks =
             {
@@ -415,7 +411,6 @@ static const TowerProfile bomb_shooter_data_18[] = {
         .tiers = {1, 0, 0},
         .range = 10240,
         .buff_speed = 1000,
-        .footprint = 1792,
         .attack_count = 1,
         .attacks =
             {
@@ -441,7 +436,6 @@ static const TowerProfile bomb_shooter_data_18[] = {
         .tiers = {1, 1, 0},
         .range = 10240,
         .buff_speed = 1000,
-        .footprint = 1792,
         .attack_count = 1,
         .attacks =
             {
@@ -467,7 +461,6 @@ static const TowerProfile bomb_shooter_data_18[] = {
         .tiers = {1, 2, 0},
         .range = 11264,
         .buff_speed = 1000,
-        .footprint = 1792,
         .attack_count = 1,
         .attacks =
             {
@@ -493,7 +486,6 @@ static const TowerProfile bomb_shooter_data_18[] = {
         .tiers = {1, 3, 0},
         .range = 12544,
         .buff_speed = 1000,
-        .footprint = 1792,
         .attack_count = 1,
         .attacks =
             {
@@ -519,7 +511,6 @@ static const TowerProfile bomb_shooter_data_18[] = {
         .tiers = {2, 0, 0},
         .range = 10240,
         .buff_speed = 1000,
-        .footprint = 1792,
         .attack_count = 1,
         .attacks =
             {
@@ -545,7 +536,6 @@ static const TowerProfile bomb_shooter_data_18[] = {
         .tiers = {2, 1, 0},
         .range = 10240,
         .buff_speed = 1000,
-        .footprint = 1792,
         .attack_count = 1,
         .attacks =
             {
@@ -571,7 +561,6 @@ static const TowerProfile bomb_shooter_data_18[] = {
         .tiers = {2, 2, 0},
         .range = 11264,
         .buff_speed = 1000,
-        .footprint = 1792,
         .attack_count = 1,
         .attacks =
             {
@@ -597,7 +586,6 @@ static const TowerProfile bomb_shooter_data_18[] = {
         .tiers = {2, 3, 0},
         .range = 12544,
         .buff_speed = 1000,
-        .footprint = 1792,
         .attack_count = 1,
         .attacks =
             {
@@ -623,7 +611,6 @@ static const TowerProfile bomb_shooter_data_18[] = {
         .tiers = {3, 0, 0},
         .range = 10240,
         .buff_speed = 1000,
-        .footprint = 1792,
         .attack_count = 1,
         .attacks =
             {
@@ -649,7 +636,6 @@ static const TowerProfile bomb_shooter_data_18[] = {
         .tiers = {3, 1, 0},
         .range = 10240,
         .buff_speed = 1000,
-        .footprint = 1792,
         .attack_count = 1,
         .attacks =
             {
@@ -675,7 +661,6 @@ static const TowerProfile bomb_shooter_data_18[] = {
         .tiers = {3, 2, 0},
         .range = 11264,
         .buff_speed = 1000,
-        .footprint = 1792,
         .attack_count = 1,
         .attacks =
             {
@@ -701,7 +686,6 @@ static const TowerProfile bomb_shooter_data_18[] = {
         .tiers = {4, 0, 0},
         .range = 11008,
         .buff_speed = 1000,
-        .footprint = 1792,
         .attack_count = 1,
         .attacks =
             {
@@ -727,7 +711,6 @@ static const TowerProfile bomb_shooter_data_18[] = {
         .tiers = {4, 1, 0},
         .range = 11008,
         .buff_speed = 1000,
-        .footprint = 1792,
         .attack_count = 1,
         .attacks =
             {
@@ -753,7 +736,6 @@ static const TowerProfile bomb_shooter_data_18[] = {
         .tiers = {4, 2, 0},
         .range = 12032,
         .buff_speed = 1000,
-        .footprint = 1792,
         .attack_count = 1,
         .attacks =
             {

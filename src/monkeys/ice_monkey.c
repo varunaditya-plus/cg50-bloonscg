@@ -369,7 +369,6 @@ static const TowerProfile ice_monkey_data_17[] = {
         .tiers = {0, 0, 0},
         .range = 5120,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -401,7 +400,6 @@ static const TowerProfile ice_monkey_data_17[] = {
         .tiers = {0, 0, 1},
         .range = 6912,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -433,7 +431,6 @@ static const TowerProfile ice_monkey_data_17[] = {
         .tiers = {0, 0, 2},
         .range = 6912,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -465,7 +462,6 @@ static const TowerProfile ice_monkey_data_17[] = {
         .tiers = {0, 0, 3},
         .range = 11776,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -492,7 +488,6 @@ static const TowerProfile ice_monkey_data_17[] = {
         .tiers = {1, 0, 0},
         .range = 5120,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -524,7 +519,6 @@ static const TowerProfile ice_monkey_data_17[] = {
         .tiers = {1, 0, 1},
         .range = 6912,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -556,7 +550,6 @@ static const TowerProfile ice_monkey_data_17[] = {
         .tiers = {1, 0, 2},
         .range = 6912,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -588,7 +581,6 @@ static const TowerProfile ice_monkey_data_17[] = {
         .tiers = {1, 0, 3},
         .range = 11776,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -615,7 +607,6 @@ static const TowerProfile ice_monkey_data_17[] = {
         .tiers = {2, 0, 0},
         .range = 5120,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -648,7 +639,6 @@ static const TowerProfile ice_monkey_data_17[] = {
         .tiers = {2, 0, 1},
         .range = 6912,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -681,7 +671,6 @@ static const TowerProfile ice_monkey_data_17[] = {
         .tiers = {2, 0, 2},
         .range = 6912,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -714,7 +703,6 @@ static const TowerProfile ice_monkey_data_17[] = {
         .tiers = {2, 0, 3},
         .range = 11776,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -742,7 +730,6 @@ static const TowerProfile ice_monkey_data_17[] = {
         .tiers = {3, 0, 0},
         .range = 6400,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -777,7 +764,6 @@ static const TowerProfile ice_monkey_data_17[] = {
         .tiers = {3, 0, 1},
         .range = 8192,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -812,7 +798,6 @@ static const TowerProfile ice_monkey_data_17[] = {
         .tiers = {3, 0, 2},
         .range = 8192,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -847,7 +832,6 @@ static const TowerProfile ice_monkey_data_17[] = {
         .tiers = {4, 0, 0},
         .range = 6400,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -882,7 +866,6 @@ static const TowerProfile ice_monkey_data_17[] = {
         .tiers = {4, 0, 1},
         .range = 8192,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
@@ -917,7 +900,6 @@ static const TowerProfile ice_monkey_data_17[] = {
         .tiers = {4, 0, 2},
         .range = 8192,
         .buff_speed = 1000,
-        .footprint = 1536,
         .attack_count = 1,
         .attacks =
             {
